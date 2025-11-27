@@ -375,33 +375,13 @@ export default function Landing() {
           </section>
         )}
 
-        {/* Testimonial Section */}
-        <section className="py-20 md:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-3xl mx-auto">
-              <Card className="border-2 border-primary/20">
-                <CardHeader className="text-center space-y-4 pb-8">
-                  <div className="text-4xl">"</div>
-                  <p className="text-xl md:text-2xl leading-relaxed text-foreground">
-                    The water sector desperately needs standardized outcome data. Investors can't make informed decisions when they're flying blind on returns.
-                  </p>
-                  <div className="pt-4">
-                    <p className="font-bold text-lg">Christopher Flensborg</p>
-                    <p className="text-sm text-muted-foreground">Leading Voice in Water Finance</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </div>
-          </div>
-        </section>
-
         {/* Team Section */}
         <section className="py-20 bg-muted/30">
           <div className="container px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Built by Water Finance Experts</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Built by Students at SSE Business Lab</h2>
               <p className="text-lg text-muted-foreground">
-                Laguna is developed by Logan Whitall and David Selin at SSE Business Lab, combining deep expertise in water technology investment analysis with cutting-edge data intelligence.
+                Laguna is developed by Logan Whitall and David Selin at SSE Business Lab, tackling the lack of standardized outcome data in water technology investments.
               </p>
             </div>
           </div>
