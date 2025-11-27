@@ -8,6 +8,9 @@ interface ProjectHeroProps {
 }
 
 export const ProjectHero = ({ project, financials, outcomes }: ProjectHeroProps) => {
+  const primaryFinancial = financials?.[0];
+  const primaryOutcome = outcomes?.[0];
+
   const getTechColor = (tech: string) => {
     const colors: Record<string, string> = {
       desalination: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -17,7 +20,6 @@ export const ProjectHero = ({ project, financials, outcomes }: ProjectHeroProps)
     };
     return colors[tech] || "bg-gray-100 text-gray-800";
   };
-
   return (
     <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-border">
       <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,transparent)]" />
@@ -42,46 +44,46 @@ export const ProjectHero = ({ project, financials, outcomes }: ProjectHeroProps)
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {financials?.[0]?.total_investment_usd && (
+          {primaryFinancial?.total_investment_usd && (
             <div className="bg-card/50 backdrop-blur rounded-lg p-4 border border-border/50">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="h-4 w-4 text-primary" />
                 <span className="text-sm text-muted-foreground">Investment</span>
               </div>
               <p className="text-2xl font-bold">
-                ${(financials[0].total_investment_usd / 1000000).toFixed(1)}M
+                ${(primaryFinancial.total_investment_usd / 1000000).toFixed(1)}M
               </p>
             </div>
           )}
           
-          {financials?.[0]?.roi_percent !== null && (
+          {primaryFinancial && primaryFinancial.roi_percent !== null && (
             <div className="bg-card/50 backdrop-blur rounded-lg p-4 border border-border/50">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="h-4 w-4 text-green-600" />
                 <span className="text-sm text-muted-foreground">ROI</span>
               </div>
-              <p className="text-2xl font-bold">{financials[0].roi_percent}%</p>
+              <p className="text-2xl font-bold">{primaryFinancial.roi_percent}%</p>
             </div>
           )}
 
-          {financials?.[0]?.payback_years && (
+          {primaryFinancial?.payback_years && (
             <div className="bg-card/50 backdrop-blur rounded-lg p-4 border border-border/50">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-orange-600" />
                 <span className="text-sm text-muted-foreground">Payback</span>
               </div>
-              <p className="text-2xl font-bold">{financials[0].payback_years} yrs</p>
+              <p className="text-2xl font-bold">{primaryFinancial.payback_years} yrs</p>
             </div>
           )}
 
-          {outcomes?.[0]?.water_saved_m3_year && (
+          {primaryOutcome?.water_saved_m3_year && (
             <div className="bg-card/50 backdrop-blur rounded-lg p-4 border border-border/50">
               <div className="flex items-center gap-2 mb-2">
                 <Droplets className="h-4 w-4 text-blue-600" />
                 <span className="text-sm text-muted-foreground">Water Impact</span>
               </div>
               <p className="text-2xl font-bold">
-                {(outcomes[0].water_saved_m3_year / 1000).toLocaleString()}k m³
+                {(primaryOutcome.water_saved_m3_year / 1000).toLocaleString()}k m³
               </p>
             </div>
           )}
