@@ -228,6 +228,84 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_assessments: {
+        Row: {
+          annual_water_consumption: number
+          company_name: string
+          created_at: string | null
+          current_treatment_level: string
+          disruption_description: string | null
+          facilities_count: number
+          financial_risk_score: number
+          id: string
+          industry_sector: string
+          overall_risk_score: number
+          physical_risk_score: number
+          primary_location_country: string
+          primary_location_region: string | null
+          recommended_actions: Json | null
+          regulatory_risk_score: number
+          reputational_risk_score: number
+          updated_at: string | null
+          user_id: string
+          water_cost_currency: string | null
+          water_cost_per_m3: number | null
+          water_disruptions_past_5y: boolean
+          water_sources: string[]
+          water_unit: string
+        }
+        Insert: {
+          annual_water_consumption: number
+          company_name: string
+          created_at?: string | null
+          current_treatment_level: string
+          disruption_description?: string | null
+          facilities_count: number
+          financial_risk_score: number
+          id?: string
+          industry_sector: string
+          overall_risk_score: number
+          physical_risk_score: number
+          primary_location_country: string
+          primary_location_region?: string | null
+          recommended_actions?: Json | null
+          regulatory_risk_score: number
+          reputational_risk_score: number
+          updated_at?: string | null
+          user_id: string
+          water_cost_currency?: string | null
+          water_cost_per_m3?: number | null
+          water_disruptions_past_5y: boolean
+          water_sources: string[]
+          water_unit: string
+        }
+        Update: {
+          annual_water_consumption?: number
+          company_name?: string
+          created_at?: string | null
+          current_treatment_level?: string
+          disruption_description?: string | null
+          facilities_count?: number
+          financial_risk_score?: number
+          id?: string
+          industry_sector?: string
+          overall_risk_score?: number
+          physical_risk_score?: number
+          primary_location_country?: string
+          primary_location_region?: string | null
+          recommended_actions?: Json | null
+          regulatory_risk_score?: number
+          reputational_risk_score?: number
+          updated_at?: string | null
+          user_id?: string
+          water_cost_currency?: string | null
+          water_cost_per_m3?: number | null
+          water_disruptions_past_5y?: boolean
+          water_sources?: string[]
+          water_unit?: string
+        }
+        Relationships: []
+      }
       saved_projects: {
         Row: {
           created_at: string
@@ -260,14 +338,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "user" | "viewer"
       project_stage: "planning" | "construction" | "operational" | "completed"
       sector_type:
         | "municipal"
@@ -413,6 +519,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user", "viewer"],
       project_stage: ["planning", "construction", "operational", "completed"],
       sector_type: [
         "municipal",

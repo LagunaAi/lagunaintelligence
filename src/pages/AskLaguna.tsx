@@ -3,9 +3,10 @@ import { Layout } from "@/components/Layout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Send, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Send, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 
 const suggestedQuestions = [
   "What's the average ROI for desalination in MENA?",
@@ -17,42 +18,43 @@ const suggestedQuestions = [
 export default function AskLaguna() {
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { sendMessage, isLoading } = useStreamingChat();
 
   const handleSendMessage = async (question?: string) => {
     const messageText = question || input;
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || isLoading) return;
 
-    // Add user message
     const userMessage = { role: "user" as const, content: messageText };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
-    setLoading(true);
 
-    // Simulate AI response (in production, this would call the AI API)
-    setTimeout(() => {
-      const responses: Record<string, string> = {
-        "desalination": "Based on our database, desalination projects in the MENA region show an average ROI of 14.2% with a confidence score of 85. Key projects include Sorek B in Israel (15% ROI, $1.5B investment) and Taweelah in UAE (12.8% ROI, $900M investment). The payback period averages 7.2 years. These projects typically serve municipal water needs and benefit from favorable regulatory environments.",
-        "industrial reuse": "I found 8 industrial water reuse projects with payback periods under 3 years. Top performers include: Coca-Cola Rajasthan Water Recycling (35% ROI, 2.1 year payback, $12M investment), Singapore NEWater Industrial (22% ROI, 2.8 years, $200M), and Nestle Thailand Manufacturing Reuse (28% ROI, 2.4 years, $8M). These projects show strong returns due to reduced water costs and circular economy benefits.",
-        "manufacturing": "For manufacturing applications, the top-performing technologies are: 1) Water Reuse Systems (avg 26% ROI) - best for high-volume users, 2) Smart Metering (18% ROI) - excellent for identifying waste, 3) Leak Detection (22% ROI) - quick wins with low capital requirements. Industrial reuse typically shows the highest returns when water costs are significant.",
-        "leak detection": "Comparing leak detection vs smart metering: Leak Detection averages 22% ROI with 3.5 year payback, while Smart Metering shows 18% ROI with 4.2 year payback. Leak detection requires lower upfront investment ($2-5M typical) vs smart metering ($5-15M), but smart metering provides ongoing operational insights. For municipal water utilities, implementing both technologies sequentially often yields the best results.",
-      };
-
-      // Find matching response
-      const lowerMessage = messageText.toLowerCase();
-      let response = "I can help you analyze water investment performance. Try asking about specific technologies (desalination, reuse, leak detection), sectors (municipal, industrial), or regions. For example: 'What's the ROI for industrial water reuse projects?' or 'Compare desalination performance across regions.'";
-      
-      for (const [key, value] of Object.entries(responses)) {
-        if (lowerMessage.includes(key)) {
-          response = value;
-          break;
+    let assistantContent = "";
+    
+    const upsertAssistant = (chunk: string) => {
+      assistantContent += chunk;
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant') {
+          return prev.map((m, i) => 
+            i === prev.length - 1 ? { ...m, content: assistantContent } : m
+          );
         }
-      }
+        return [...prev, { role: 'assistant', content: assistantContent }];
+      });
+    };
 
-      const assistantMessage = { role: "assistant" as const, content: response };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setLoading(false);
-    }, 1500);
+    try {
+      await sendMessage(
+        [...messages, userMessage],
+        (chunk) => upsertAssistant(chunk),
+        () => {},
+        undefined
+      );
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      toast.error(error.message || 'Failed to send message');
+      setMessages(prev => prev.slice(0, -1));
+    }
   };
 
   return (
@@ -105,13 +107,12 @@ export default function AskLaguna() {
                 </Card>
               </div>
             ))}
-            {loading && (
+            {isLoading && (
               <div className="flex justify-start">
                 <Card className="max-w-[80%] p-4 bg-muted">
                   <div className="flex items-center gap-2">
-                    <div className="animate-bounce">●</div>
-                    <div className="animate-bounce delay-100">●</div>
-                    <div className="animate-bounce delay-200">●</div>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Thinking...</span>
                   </div>
                 </Card>
               </div>
@@ -121,29 +122,31 @@ export default function AskLaguna() {
           {/* Input */}
           <Card className="p-4">
             <div className="flex gap-2">
-              <Textarea
+              <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question about water investments..."
-                className="min-h-[60px] resize-none"
+                placeholder="Ask about water investments, technologies, ROI..."
+                className="flex-1"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }
                 }}
+                disabled={isLoading}
               />
               <Button
                 size="icon"
                 onClick={() => handleSendMessage()}
-                disabled={loading || !input.trim()}
+                disabled={isLoading || !input.trim()}
               >
-                <Send className="h-4 w-4" />
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Press Enter to send, Shift+Enter for new line
-            </p>
           </Card>
         </div>
       </Layout>
