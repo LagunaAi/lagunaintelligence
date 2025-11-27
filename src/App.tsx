@@ -12,6 +12,7 @@ import AskLaguna from "./pages/AskLaguna";
 import Settings from "./pages/Settings";
 import ProjectDetail from "./pages/ProjectDetail";
 import RiskAssessment from "./pages/RiskAssessment";
+import RiskDashboard from "./pages/RiskDashboard";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/risk-assessment" element={<RiskAssessment />} />
+          <Route path="/risk-dashboard" element={<RiskDashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

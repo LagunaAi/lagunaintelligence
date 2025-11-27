@@ -142,7 +142,7 @@ const RiskAssessment = () => {
       if (insertError) throw insertError;
 
       toast.success("Risk assessment completed!");
-      setStep(3);
+      navigate('/risk-dashboard');
     } catch (error: any) {
       console.error('Error saving assessment:', error);
       toast.error(error.message || "Failed to complete assessment");
@@ -358,22 +358,6 @@ const RiskAssessment = () => {
                   <Button onClick={handleSubmit} disabled={loading}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Calculating...</> : "Calculate Risk"}
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Assessment Complete!</CardTitle>
-                <CardDescription>Your risk assessment has been saved</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p>Your personalized water risk dashboard is being prepared. You'll be redirected to view your results shortly.</p>
-                <div className="flex gap-4">
-                  <Button onClick={() => navigate('/dashboard')}>View Dashboard</Button>
-                  <Button variant="outline" onClick={() => navigate('/explore')}>Explore Solutions</Button>
                 </div>
               </CardContent>
             </Card>
