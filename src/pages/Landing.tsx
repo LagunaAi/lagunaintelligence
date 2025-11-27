@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { Database, TrendingUp, MessageSquare, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -56,7 +56,10 @@ export default function Landing() {
         <section className="py-20 md:py-32">
           <div className="container px-4 md:px-6">
             <div className="grid gap-8 md:grid-cols-3">
-              <Card className="border-2 hover:border-primary transition-colors">
+              <Card 
+                className="border-2 hover:border-primary transition-colors cursor-pointer"
+                onClick={() => navigate("/explore")}
+              >
                 <CardHeader>
                   <Database className="h-12 w-12 text-primary mb-4" />
                   <CardTitle>Verified Database</CardTitle>
@@ -66,7 +69,10 @@ export default function Landing() {
                 </CardHeader>
               </Card>
 
-              <Card className="border-2 hover:border-primary transition-colors">
+              <Card 
+                className="border-2 hover:border-primary transition-colors cursor-pointer"
+                onClick={() => navigate("/analytics")}
+              >
                 <CardHeader>
                   <TrendingUp className="h-12 w-12 text-accent mb-4" />
                   <CardTitle>Benchmark Analytics</CardTitle>
@@ -76,7 +82,10 @@ export default function Landing() {
                 </CardHeader>
               </Card>
 
-              <Card className="border-2 hover:border-primary transition-colors">
+              <Card 
+                className="border-2 hover:border-primary transition-colors cursor-pointer"
+                onClick={() => navigate("/ask")}
+              >
                 <CardHeader>
                   <MessageSquare className="h-12 w-12 text-highlight mb-4" />
                   <CardTitle>Ask Laguna AI</CardTitle>
