@@ -11,6 +11,8 @@ import Analytics from "./pages/Analytics";
 import AskLaguna from "./pages/AskLaguna";
 import Settings from "./pages/Settings";
 import ProjectDetail from "./pages/ProjectDetail";
+import RiskAssessment from "./pages/RiskAssessment";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/ask" element={<AskLaguna />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/risk-assessment" element={<RiskAssessment />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
