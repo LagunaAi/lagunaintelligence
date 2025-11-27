@@ -22,6 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { path: "/dashboard", label: "Dashboard" },
     { path: "/explore", label: "Explore" },
     { path: "/analytics", label: "Analytics" },
+    { path: "/risk-assessment", label: "Risk Assessment" },
     { path: "/ask", label: "Ask Laguna" },
   ];
 
