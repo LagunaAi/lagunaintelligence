@@ -231,8 +231,8 @@ export default function Explore() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 {filteredProjects.map((project) => {
-                  const financial = project.financials[0];
-                  const outcome = project.outcomes[0];
+                  const financial = project.financials?.[0];
+                  const outcome = project.outcomes?.[0];
                   const confidence = financial ? getConfidenceLabel(financial.confidence_score) : null;
 
                   return (
