@@ -234,23 +234,31 @@ export type Database = {
           company_name: string
           created_at: string | null
           current_treatment_level: string
+          discharge_permit_type: string | null
+          discharge_quality_concerns: boolean | null
           disruption_description: string | null
           facilities_count: number
           financial_risk_score: number
           id: string
           industry_sector: string
+          intake_water_source_quality: string | null
           overall_risk_score: number
           physical_risk_score: number
+          primary_contaminants: string[] | null
           primary_location_country: string
           primary_location_region: string | null
           recommended_actions: Json | null
           regulatory_risk_score: number
           reputational_risk_score: number
+          treatment_before_use: string | null
           updated_at: string | null
+          upstream_pollution_sources: string[] | null
           user_id: string
           water_cost_currency: string | null
           water_cost_per_m3: number | null
           water_disruptions_past_5y: boolean
+          water_quality_risk_score: number | null
+          water_quality_testing_frequency: string | null
           water_sources: string[]
           water_unit: string
         }
@@ -259,23 +267,31 @@ export type Database = {
           company_name: string
           created_at?: string | null
           current_treatment_level: string
+          discharge_permit_type?: string | null
+          discharge_quality_concerns?: boolean | null
           disruption_description?: string | null
           facilities_count: number
           financial_risk_score: number
           id?: string
           industry_sector: string
+          intake_water_source_quality?: string | null
           overall_risk_score: number
           physical_risk_score: number
+          primary_contaminants?: string[] | null
           primary_location_country: string
           primary_location_region?: string | null
           recommended_actions?: Json | null
           regulatory_risk_score: number
           reputational_risk_score: number
+          treatment_before_use?: string | null
           updated_at?: string | null
+          upstream_pollution_sources?: string[] | null
           user_id: string
           water_cost_currency?: string | null
           water_cost_per_m3?: number | null
           water_disruptions_past_5y: boolean
+          water_quality_risk_score?: number | null
+          water_quality_testing_frequency?: string | null
           water_sources: string[]
           water_unit: string
         }
@@ -284,23 +300,31 @@ export type Database = {
           company_name?: string
           created_at?: string | null
           current_treatment_level?: string
+          discharge_permit_type?: string | null
+          discharge_quality_concerns?: boolean | null
           disruption_description?: string | null
           facilities_count?: number
           financial_risk_score?: number
           id?: string
           industry_sector?: string
+          intake_water_source_quality?: string | null
           overall_risk_score?: number
           physical_risk_score?: number
+          primary_contaminants?: string[] | null
           primary_location_country?: string
           primary_location_region?: string | null
           recommended_actions?: Json | null
           regulatory_risk_score?: number
           reputational_risk_score?: number
+          treatment_before_use?: string | null
           updated_at?: string | null
+          upstream_pollution_sources?: string[] | null
           user_id?: string
           water_cost_currency?: string | null
           water_cost_per_m3?: number | null
           water_disruptions_past_5y?: boolean
+          water_quality_risk_score?: number | null
+          water_quality_testing_frequency?: string | null
           water_sources?: string[]
           water_unit?: string
         }
