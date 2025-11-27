@@ -43,6 +43,89 @@ const TREATMENT_LEVELS = [
   "Zero Liquid Discharge"
 ];
 
+const INTAKE_QUALITY_OPTIONS = [
+  "Excellent",
+  "Good",
+  "Fair",
+  "Poor",
+  "Unknown"
+];
+
+const CONTAMINANT_OPTIONS = [
+  "High TDS/Salinity",
+  "Heavy metals (arsenic, lead, chromium)",
+  "Organic compounds (pesticides, solvents)",
+  "Microbial contamination",
+  "PFAS/Forever chemicals",
+  "Nitrates/phosphates",
+  "High sediment/turbidity",
+  "None known",
+  "Not tested"
+];
+
+const TREATMENT_BEFORE_USE_OPTIONS = [
+  "None - source water used directly",
+  "Basic filtration only",
+  "Reverse osmosis / Ultrafiltration",
+  "Full ultrapure water (UPW) train",
+  "Don't know"
+];
+
+const DISCHARGE_PERMIT_OPTIONS = [
+  "Direct to surface water (river, ocean)",
+  "Municipal sewer system",
+  "Zero liquid discharge (no external discharge)",
+  "Evaporation ponds",
+  "Recycled internally",
+  "Other"
+];
+
+const UPSTREAM_POLLUTION_OPTIONS = [
+  "Agricultural runoff (fertilizers, pesticides)",
+  "Other industrial facilities",
+  "Urban stormwater",
+  "Mining operations",
+  "Wastewater treatment plants",
+  "None known"
+];
+
+const TESTING_FREQUENCY_OPTIONS = [
+  "Continuous online monitoring",
+  "Daily",
+  "Weekly",
+  "Monthly",
+  "Annually or less",
+  "Never / Don't know"
+];
+
+const INDUSTRY_QUALITY_REQUIREMENTS: Record<string, { standard: string; tolerance: string; riskNote: string }> = {
+  "Semiconductors": {
+    standard: "Ultrapure Water (UPW) - 18.2 MΩ·cm resistivity",
+    tolerance: "Zero tolerance for particles >0.05μm",
+    riskNote: "Any quality deviation = chip defects worth millions"
+  },
+  "Pharmaceuticals": {
+    standard: "USP Purified Water or WFI (Water for Injection)",
+    tolerance: "TOC <500 ppb, Conductivity <1.3 μS/cm",
+    riskNote: "Quality failures = FDA violations, product recalls"
+  },
+  "Food & Beverage": {
+    standard: "Potable water quality minimum",
+    tolerance: "Must meet local drinking water standards",
+    riskNote: "Contamination = product recalls, brand damage"
+  },
+  "Data Centers": {
+    standard: "Cooling tower quality - low TDS preferred",
+    tolerance: "High TDS = scaling, corrosion, Legionella risk",
+    riskNote: "Quality issues = equipment damage, downtime"
+  },
+  "Mining": {
+    standard: "Process-dependent, often tolerates lower quality",
+    tolerance: "Discharge is primary concern",
+    riskNote: "Tailings pond failures = catastrophic liability"
+  }
+};
+
 const RiskAssessment = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -62,7 +145,16 @@ const RiskAssessment = () => {
     waterCostCurrency: "USD",
     waterDisruptions: false,
     disruptionDescription: "",
-    currentTreatment: ""
+    currentTreatment: "",
+    // Water quality fields
+    intakeWaterQuality: "",
+    primaryContaminants: [] as string[],
+    treatmentBeforeUse: "",
+    dischargePermitType: "",
+    dischargeQualityConcerns: false,
+    dischargeDescription: "",
+    upstreamPollutionSources: [] as string[],
+    waterQualityTestingFrequency: ""
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -78,12 +170,34 @@ const RiskAssessment = () => {
     }));
   };
 
+  const handleContaminantToggle = (contaminant: string) => {
+    setFormData(prev => ({
+      ...prev,
+      primaryContaminants: prev.primaryContaminants.includes(contaminant)
+        ? prev.primaryContaminants.filter(c => c !== contaminant)
+        : [...prev.primaryContaminants, contaminant]
+    }));
+  };
+
+  const handleUpstreamPollutionToggle = (source: string) => {
+    setFormData(prev => ({
+      ...prev,
+      upstreamPollutionSources: prev.upstreamPollutionSources.includes(source)
+        ? prev.upstreamPollutionSources.filter(s => s !== source)
+        : [...prev.upstreamPollutionSources, source]
+    }));
+  };
+
   const handleNext = () => {
     if (step === 1 && (!formData.companyName || !formData.industrySector || !formData.annualWaterConsumption || !formData.primaryLocationCountry || !formData.facilitiesCount)) {
       toast.error("Please fill in all required fields");
       return;
     }
     if (step === 2 && (formData.waterSources.length === 0 || !formData.currentTreatment)) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    if (step === 3 && (!formData.intakeWaterQuality || !formData.treatmentBeforeUse || !formData.dischargePermitType || !formData.waterQualityTestingFrequency)) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -107,7 +221,14 @@ const RiskAssessment = () => {
           waterSources: formData.waterSources,
           waterDisruptions: formData.waterDisruptions,
           currentTreatment: formData.currentTreatment,
-          primaryLocationCountry: formData.primaryLocationCountry
+          primaryLocationCountry: formData.primaryLocationCountry,
+          intakeWaterQuality: formData.intakeWaterQuality,
+          primaryContaminants: formData.primaryContaminants,
+          treatmentBeforeUse: formData.treatmentBeforeUse,
+          dischargePermitType: formData.dischargePermitType,
+          dischargeQualityConcerns: formData.dischargeQualityConcerns,
+          upstreamPollutionSources: formData.upstreamPollutionSources,
+          waterQualityTestingFrequency: formData.waterQualityTestingFrequency
         }
       });
 
@@ -131,11 +252,19 @@ const RiskAssessment = () => {
           water_disruptions_past_5y: formData.waterDisruptions,
           disruption_description: formData.disruptionDescription,
           current_treatment_level: formData.currentTreatment,
+          intake_water_source_quality: formData.intakeWaterQuality,
+          primary_contaminants: formData.primaryContaminants,
+          treatment_before_use: formData.treatmentBeforeUse,
+          discharge_permit_type: formData.dischargePermitType,
+          discharge_quality_concerns: formData.dischargeQualityConcerns,
+          upstream_pollution_sources: formData.upstreamPollutionSources,
+          water_quality_testing_frequency: formData.waterQualityTestingFrequency,
           overall_risk_score: riskData.overallRisk,
           physical_risk_score: riskData.physicalRisk,
           regulatory_risk_score: riskData.regulatoryRisk,
           reputational_risk_score: riskData.reputationalRisk,
           financial_risk_score: riskData.financialRisk,
+          water_quality_risk_score: riskData.waterQualityRisk,
           recommended_actions: riskData.recommendations
         });
 
@@ -151,7 +280,7 @@ const RiskAssessment = () => {
     }
   };
 
-  const progressValue = (step / 3) * 100;
+  const progressValue = (step / 4) * 100;
 
   return (
     <ProtectedRoute>
@@ -166,7 +295,7 @@ const RiskAssessment = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Progress</span>
-                <span className="text-sm text-muted-foreground">Step {step} of 3</span>
+                <span className="text-sm text-muted-foreground">Step {step} of 4</span>
               </div>
               <Progress value={progressValue} className="h-2" />
             </CardContent>
@@ -354,6 +483,185 @@ const RiskAssessment = () => {
                 </div>
 
                 <div className="flex justify-between">
+                  <Button variant="outline" onClick={handleBack}>Back</Button>
+                  <Button onClick={handleNext}>Next</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {step === 3 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Water Quality Profile</CardTitle>
+                <CardDescription>Assess your water quality risks and monitoring</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {formData.industrySector && INDUSTRY_QUALITY_REQUIREMENTS[formData.industrySector] && (
+                  <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                    <h3 className="font-semibold text-sm">Industry-Specific Requirements: {formData.industrySector}</h3>
+                    <div className="text-xs space-y-1">
+                      <p><strong>Standard:</strong> {INDUSTRY_QUALITY_REQUIREMENTS[formData.industrySector].standard}</p>
+                      <p><strong>Tolerance:</strong> {INDUSTRY_QUALITY_REQUIREMENTS[formData.industrySector].tolerance}</p>
+                      <p className="text-red-600"><strong>Risk:</strong> {INDUSTRY_QUALITY_REQUIREMENTS[formData.industrySector].riskNote}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="intakeQuality">Intake Water Quality *</Label>
+                  <Select value={formData.intakeWaterQuality} onValueChange={(value) => handleInputChange('intakeWaterQuality', value)}>
+                    <SelectTrigger id="intakeQuality">
+                      <SelectValue placeholder="Select quality rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INTAKE_QUALITY_OPTIONS.map(option => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Contaminants Present in Source Water (select all that apply)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {CONTAMINANT_OPTIONS.map(contaminant => (
+                      <div key={contaminant} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={contaminant}
+                          checked={formData.primaryContaminants.includes(contaminant)}
+                          onCheckedChange={() => handleContaminantToggle(contaminant)}
+                        />
+                        <label htmlFor={contaminant} className="text-sm font-normal cursor-pointer">
+                          {contaminant}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="treatmentBeforeUse">Treatment Before Use in Operations *</Label>
+                  <Select value={formData.treatmentBeforeUse} onValueChange={(value) => handleInputChange('treatmentBeforeUse', value)}>
+                    <SelectTrigger id="treatmentBeforeUse">
+                      <SelectValue placeholder="Select treatment level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TREATMENT_BEFORE_USE_OPTIONS.map(option => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dischargePermit">Wastewater Discharge Method *</Label>
+                  <Select value={formData.dischargePermitType} onValueChange={(value) => handleInputChange('dischargePermitType', value)}>
+                    <SelectTrigger id="dischargePermit">
+                      <SelectValue placeholder="Select discharge method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DISCHARGE_PERMIT_OPTIONS.map(option => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="dischargeConcerns"
+                      checked={formData.dischargeQualityConcerns}
+                      onCheckedChange={(checked) => handleInputChange('dischargeQualityConcerns', checked)}
+                    />
+                    <label htmlFor="dischargeConcerns" className="text-sm font-medium cursor-pointer">
+                      Have you experienced discharge permit violations or compliance concerns in the past 3 years?
+                    </label>
+                  </div>
+                  {formData.dischargeQualityConcerns && (
+                    <Textarea
+                      value={formData.dischargeDescription}
+                      onChange={(e) => handleInputChange('dischargeDescription', e.target.value)}
+                      placeholder="Briefly describe the compliance concerns..."
+                      className="mt-2"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Upstream Pollution Sources (select all that apply)</Label>
+                  {UPSTREAM_POLLUTION_OPTIONS.map(source => (
+                    <div key={source} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={source}
+                        checked={formData.upstreamPollutionSources.includes(source)}
+                        onCheckedChange={() => handleUpstreamPollutionToggle(source)}
+                      />
+                      <label htmlFor={source} className="text-sm font-normal cursor-pointer">
+                        {source}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="testingFrequency">Water Quality Testing Frequency *</Label>
+                  <Select value={formData.waterQualityTestingFrequency} onValueChange={(value) => handleInputChange('waterQualityTestingFrequency', value)}>
+                    <SelectTrigger id="testingFrequency">
+                      <SelectValue placeholder="Select testing frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TESTING_FREQUENCY_OPTIONS.map(option => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={handleBack}>Back</Button>
+                  <Button onClick={handleNext}>Review & Calculate</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {step === 4 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Review & Calculate</CardTitle>
+                <CardDescription>Review your assessment details before calculating risk scores</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Company</p>
+                    <p className="font-semibold">{formData.companyName}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Industry</p>
+                    <p className="font-semibold">{formData.industrySector}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Annual Water Use</p>
+                    <p className="font-semibold">{formData.annualWaterConsumption} {formData.waterUnit}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Location</p>
+                    <p className="font-semibold">{formData.primaryLocationCountry}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Intake Water Quality</p>
+                    <p className="font-semibold">{formData.intakeWaterQuality}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Testing Frequency</p>
+                    <p className="font-semibold">{formData.waterQualityTestingFrequency}</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-4">
                   <Button variant="outline" onClick={handleBack}>Back</Button>
                   <Button onClick={handleSubmit} disabled={loading}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Calculating...</> : "Calculate Risk"}

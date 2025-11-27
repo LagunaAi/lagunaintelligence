@@ -11,7 +11,20 @@ serve(async (req) => {
   }
 
   try {
-    const { industrySector, waterSources, waterDisruptions, currentTreatment, primaryLocationCountry } = await req.json();
+    const { 
+      industrySector, 
+      waterSources, 
+      waterDisruptions, 
+      currentTreatment, 
+      primaryLocationCountry,
+      intakeWaterQuality,
+      primaryContaminants,
+      treatmentBeforeUse,
+      dischargePermitType,
+      dischargeQualityConcerns,
+      upstreamPollutionSources,
+      waterQualityTestingFrequency
+    } = await req.json();
 
     // Calculate risk scores based on multiple factors
     let physicalRisk = 30;
@@ -63,15 +76,55 @@ serve(async (req) => {
       financialRisk += 20;
     }
 
+    // Calculate Water Quality Risk
+    let waterQualityRisk = 0;
+    
+    // Intake quality (0-25 points)
+    const qualityScores: Record<string, number> = {
+      'Excellent': 0,
+      'Good': 5,
+      'Fair': 15,
+      'Poor': 25,
+      'Unknown': 20
+    };
+    waterQualityRisk += qualityScores[intakeWaterQuality] || 20;
+    
+    // Contaminants present (0-25 points)
+    const highRiskContaminants = ['PFAS/Forever chemicals', 'Heavy metals (arsenic, lead, chromium)', 'Organic compounds (pesticides, solvents)'];
+    const contaminantCount = primaryContaminants?.length || 0;
+    const hasHighRisk = primaryContaminants?.some((c: string) => highRiskContaminants.includes(c));
+    waterQualityRisk += Math.min(contaminantCount * 4, 15);
+    if (hasHighRisk) waterQualityRisk += 10;
+    
+    // Discharge risk (0-20 points)
+    if (dischargeQualityConcerns) waterQualityRisk += 15;
+    if (dischargePermitType === 'Direct to surface water (river, ocean)') waterQualityRisk += 5;
+    
+    // Upstream pollution (0-15 points)
+    const upstreamCount = upstreamPollutionSources?.length || 0;
+    waterQualityRisk += Math.min(upstreamCount * 5, 15);
+    
+    // Monitoring gap (0-15 points)
+    const monitoringScores: Record<string, number> = {
+      'Continuous online monitoring': 0,
+      'Daily': 2,
+      'Weekly': 5,
+      'Monthly': 10,
+      'Annually or less': 13,
+      'Never / Don\'t know': 15
+    };
+    waterQualityRisk += monitoringScores[waterQualityTestingFrequency] || 15;
+
     // Cap all scores at 100
     physicalRisk = Math.min(physicalRisk, 100);
     regulatoryRisk = Math.min(regulatoryRisk, 100);
     reputationalRisk = Math.min(reputationalRisk, 100);
     financialRisk = Math.min(financialRisk, 100);
+    waterQualityRisk = Math.min(waterQualityRisk, 100);
 
-    // Calculate overall risk (weighted average)
+    // Calculate overall risk (weighted average including water quality)
     const overallRisk = Math.round(
-      (physicalRisk * 0.3 + regulatoryRisk * 0.25 + reputationalRisk * 0.2 + financialRisk * 0.25)
+      (physicalRisk * 0.25 + regulatoryRisk * 0.2 + reputationalRisk * 0.15 + financialRisk * 0.2 + waterQualityRisk * 0.2)
     );
 
     // Generate recommendations based on risk profile
@@ -109,6 +162,39 @@ serve(async (req) => {
       });
     }
 
+    // Water quality specific recommendations
+    if (waterQualityRisk > 50) {
+      recommendations.push({
+        title: "Advanced Treatment System",
+        priority: "high",
+        description: "Consider implementing RO/UF for intake water to address quality concerns and ensure operational reliability."
+      });
+    }
+
+    if (primaryContaminants?.includes('PFAS/Forever chemicals')) {
+      recommendations.push({
+        title: "PFAS Treatment Compliance",
+        priority: "high",
+        description: "PFAS regulations are tightening globally. Implement specialized PFAS treatment to ensure compliance and avoid liability."
+      });
+    }
+
+    if (dischargeQualityConcerns) {
+      recommendations.push({
+        title: "Wastewater Treatment Upgrade",
+        priority: "high",
+        description: "Upgrade discharge treatment systems, consider MBR (Membrane Bioreactor) for consistent compliance with permit limits."
+      });
+    }
+
+    if (waterQualityTestingFrequency === 'Monthly' || waterQualityTestingFrequency === 'Annually or less' || waterQualityTestingFrequency === 'Never / Don\'t know') {
+      recommendations.push({
+        title: "Continuous Quality Monitoring",
+        priority: "medium",
+        description: "Implement real-time water quality monitoring to detect contamination early and prevent operational disruptions."
+      });
+    }
+
     return new Response(
       JSON.stringify({
         overallRisk,
@@ -116,6 +202,7 @@ serve(async (req) => {
         regulatoryRisk,
         reputationalRisk,
         financialRisk,
+        waterQualityRisk,
         recommendations
       }),
       { 

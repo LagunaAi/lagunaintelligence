@@ -19,6 +19,7 @@ interface RiskAssessment {
   regulatory_risk_score: number;
   reputational_risk_score: number;
   financial_risk_score: number;
+  water_quality_risk_score: number;
   recommended_actions: any;
   created_at: string;
 }
@@ -139,7 +140,7 @@ const RiskDashboard = () => {
           {/* Risk Breakdown */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Risk Breakdown</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <RiskScoreCard
                 title="Physical Risk"
                 score={assessment.physical_risk_score}
@@ -159,6 +160,11 @@ const RiskDashboard = () => {
                 title="Financial Risk"
                 score={assessment.financial_risk_score}
                 description="Cost volatility and supply disruptions"
+              />
+              <RiskScoreCard
+                title="Water Quality Risk"
+                score={assessment.water_quality_risk_score}
+                description="Intake quality, contaminants, and discharge compliance"
               />
             </div>
           </div>
