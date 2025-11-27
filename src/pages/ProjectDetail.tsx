@@ -40,7 +40,21 @@ export default function ProjectDetail() {
         .maybeSingle();
 
       if (error) throw error;
-      setProject(data);
+
+      if (data) {
+        const normalizedProject = {
+          ...data,
+          financials: data.financials
+            ? (Array.isArray(data.financials) ? data.financials : [data.financials])
+            : [],
+          outcomes: data.outcomes
+            ? (Array.isArray(data.outcomes) ? data.outcomes : [data.outcomes])
+            : [],
+        };
+        setProject(normalizedProject);
+      } else {
+        setProject(null);
+      }
     } catch (error) {
       console.error('Error loading project:', error);
       toast.error("Failed to load project details");
