@@ -6,7 +6,9 @@ interface FinancialChartsProps {
 }
 
 export const FinancialCharts = ({ financials }: FinancialChartsProps) => {
-  if (!financials || financials.length === 0) {
+  const financial = financials?.[0];
+  
+  if (!financial) {
     return (
       <Card>
         <CardContent className="py-8">
@@ -15,8 +17,6 @@ export const FinancialCharts = ({ financials }: FinancialChartsProps) => {
       </Card>
     );
   }
-
-  const financial = financials[0];
 
   // Investment breakdown data
   const investmentData = [

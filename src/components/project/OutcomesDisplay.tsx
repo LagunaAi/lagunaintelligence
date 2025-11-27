@@ -7,7 +7,9 @@ interface OutcomesDisplayProps {
 }
 
 export const OutcomesDisplay = ({ outcomes }: OutcomesDisplayProps) => {
-  if (!outcomes || outcomes.length === 0) {
+  const outcome = outcomes?.[0];
+  
+  if (!outcome) {
     return (
       <Card>
         <CardContent className="py-8">
@@ -16,8 +18,6 @@ export const OutcomesDisplay = ({ outcomes }: OutcomesDisplayProps) => {
       </Card>
     );
   }
-
-  const outcome = outcomes[0];
 
   const impactMetrics = [
     {

@@ -37,7 +37,7 @@ export default function ProjectDetail() {
           outcomes (*)
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProject(data);
