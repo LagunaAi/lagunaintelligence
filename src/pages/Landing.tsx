@@ -109,12 +109,12 @@ export default function Landing() {
                   The Problem
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  Industrial Water Risk is Growing — And Invisible
+                  Industrial Water Risk is Growing – And Invisible
                 </h2>
                 <div className="space-y-4 text-muted-foreground">
                   <div className="flex items-start gap-3">
                     <div className="mt-1 h-2 w-2 rounded-full bg-destructive flex-shrink-0" />
-                    <p><span className="font-semibold text-foreground">$339B</span> in water-related financial impacts reported by corporations — yet most companies don't price water into decisions <span className="text-xs">(CDP 2024)</span></p>
+                    <p><span className="font-semibold text-foreground">$339B</span> in water-related financial impacts reported by corporations – yet most companies don't price water into decisions <span className="text-xs">(CDP 2024)</span></p>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="mt-1 h-2 w-2 rounded-full bg-destructive flex-shrink-0" />
@@ -126,7 +126,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground italic border-l-2 border-destructive/30 pl-4">
-                  In Taiwan, 183,000 acres of farmland were shut off for three years so semiconductor fabs could keep running. Water scarcity isn't coming — it's here.
+                  In Taiwan, 183,000 acres of farmland were shut off for three years so semiconductor fabs could keep running. Water scarcity isn't coming – it's here.
                 </p>
               </div>
 
@@ -149,7 +149,7 @@ export default function Landing() {
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="mt-1 h-5 w-5 text-highlight flex-shrink-0" />
-                    <p><span className="font-semibold text-foreground">AI-powered recommendations</span> that cite actual data and comparable projects — not assumptions</p>
+                    <p><span className="font-semibold text-foreground">AI-powered recommendations</span> that cite actual data and comparable projects – not assumptions</p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground italic border-l-2 border-highlight/30 pl-4">
