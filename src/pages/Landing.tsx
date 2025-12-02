@@ -68,16 +68,16 @@ export default function Landing() {
               {/* Stats Banner */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl pt-12">
                 <div className="flex flex-col items-center">
-                  <div className="text-4xl md:text-5xl font-bold data-value text-primary">$7T</div>
-                  <div className="text-sm text-muted-foreground mt-1">Investment Gap</div>
+                  <div className="text-4xl md:text-5xl font-bold data-value text-primary">$339B</div>
+                  <div className="text-sm text-muted-foreground mt-1">Corporate Water Risk</div>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="text-4xl md:text-5xl font-bold data-value text-primary">8%</div>
-                  <div className="text-sm text-muted-foreground mt-1">GDP at Risk</div>
+                  <div className="text-4xl md:text-5xl font-bold data-value text-primary">69%</div>
+                  <div className="text-sm text-muted-foreground mt-1">Companies Impacted</div>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="text-4xl md:text-5xl font-bold data-value text-primary">500+</div>
-                  <div className="text-sm text-muted-foreground mt-1">Projects Tracked</div>
+                  <div className="text-4xl md:text-5xl font-bold data-value text-primary">25+</div>
+                  <div className="text-sm text-muted-foreground mt-1">Verified Projects</div>
                 </div>
               </div>
             </div>
@@ -109,22 +109,25 @@ export default function Landing() {
                   The Problem
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  Water Investment is a $7 Trillion Black Box
+                  Industrial Water Risk is Growing — And Invisible
                 </h2>
                 <div className="space-y-4 text-muted-foreground">
                   <div className="flex items-start gap-3">
                     <div className="mt-1 h-2 w-2 rounded-full bg-destructive flex-shrink-0" />
-                    <p>$225B in corporate assets at water risk, but no standardized outcomes data exists</p>
+                    <p><span className="font-semibold text-foreground">$339B</span> in water-related financial impacts reported by corporations — yet most companies don't price water into decisions <span className="text-xs">(CDP 2024)</span></p>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="mt-1 h-2 w-2 rounded-full bg-destructive flex-shrink-0" />
-                    <p>69% of companies report water exposure, yet investors lack tools to evaluate solutions</p>
+                    <p><span className="font-semibold text-foreground">$4.2 trillion</span> in projected manufacturing losses from water disruption by 2050 <span className="text-xs">(GHD Aquanomics)</span></p>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="mt-1 h-2 w-2 rounded-full bg-destructive flex-shrink-0" />
-                    <p>Banks and corporates invest blindly - tracking capital flows, not returns</p>
+                    <p><span className="font-semibold text-foreground">69%</span> of companies report water-related business impacts, but lack data to evaluate solutions</p>
                   </div>
                 </div>
+                <p className="text-sm text-muted-foreground italic border-l-2 border-destructive/30 pl-4">
+                  In Taiwan, 183,000 acres of farmland were shut off for three years so semiconductor fabs could keep running. Water scarcity isn't coming — it's here.
+                </p>
               </div>
 
               <div className="space-y-6">
@@ -133,22 +136,25 @@ export default function Landing() {
                   Our Solution
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  Know What Works Before You Invest
+                  See What Works Before You Invest
                 </h2>
                 <div className="space-y-4 text-muted-foreground">
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="mt-1 h-5 w-5 text-highlight flex-shrink-0" />
-                    <p>Verified outcomes database from World Bank, EIB, and corporate disclosures</p>
+                    <p><span className="font-semibold text-foreground">Real project outcomes</span> from TSMC, Nestlé, Carlsberg, Intel, Microsoft and 20+ industrial leaders</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="mt-1 h-5 w-5 text-highlight flex-shrink-0" />
-                    <p>Risk-adjusted recommendations based on 500+ real project outcomes</p>
+                    <p><span className="font-semibold text-foreground">Risk assessment</span> tailored to your industry, location, and water profile</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="mt-1 h-5 w-5 text-highlight flex-shrink-0" />
-                    <p>AI-powered insights that cite actual data, not assumptions</p>
+                    <p><span className="font-semibold text-foreground">AI-powered recommendations</span> that cite actual data and comparable projects — not assumptions</p>
                   </div>
                 </div>
+                <p className="text-sm text-muted-foreground italic border-l-2 border-highlight/30 pl-4">
+                  The intelligence that used to cost $50-100K in consulting fees, available in seconds.
+                </p>
               </div>
             </div>
           </div>
@@ -189,7 +195,7 @@ export default function Landing() {
                   <BarChart3 className="h-12 w-12 text-accent" />
                   <h3 className="text-xl font-bold">Explore Solutions</h3>
                   <p className="text-muted-foreground">
-                    Browse 500+ verified water projects with real ROI data, filtered to your industry and region
+                    Browse 25+ verified industrial water projects with real ROI data, filtered to your industry and region
                   </p>
                 </div>
                 <div className="hidden md:block absolute top-8 -right-4 w-8 h-0.5 bg-border" />
