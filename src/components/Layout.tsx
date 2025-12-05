@@ -19,6 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
+    { path: "/", label: "Home" },
     { path: "/dashboard", label: "Dashboard" },
     { path: "/explore", label: "Explore" },
     { path: "/analytics", label: "Analytics" },
@@ -33,7 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <img src={lagunaLogo} alt="Laguna" className="h-8 w-auto" />
             </Link>
 
