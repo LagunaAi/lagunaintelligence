@@ -109,7 +109,7 @@ export default function Landing() {
                   The Problem
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                  Industrial Water Risk is Growing – And Invisible
+                  Industrial Water Risk is Growing – And Not Priced In
                 </h2>
                 <div className="space-y-4 text-muted-foreground">
                   <div className="flex items-start gap-3">
