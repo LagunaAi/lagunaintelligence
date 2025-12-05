@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
-import { Database, TrendingUp, MessageSquare, ArrowRight, AlertTriangle, Target, BarChart3, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Database, TrendingUp, MessageSquare, ArrowRight, AlertTriangle, Target, BarChart3, CheckCircle2, ChevronLeft, ChevronRight, Newspaper, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -211,6 +211,135 @@ export default function Landing() {
                   Get AI-powered recommendations backed by actual project outcomes, not forecasts
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Reputational Risk Signals Preview Section */}
+        <section className="py-20 bg-background">
+          <div className="container px-4 md:px-6">
+            <div className="grid lg:grid-cols-5 gap-12 max-w-6xl mx-auto items-center">
+              {/* Left Column - Text Content (40%) */}
+              <div className="lg:col-span-2 space-y-6">
+                <span className="text-sm font-semibold uppercase tracking-wider text-accent">
+                  EARLY WARNING SYSTEM
+                </span>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
+                  Reputational Risk Predicts Regulatory Risk
+                </h2>
+                <p className="text-muted-foreground">
+                  Community opposition and media coverage are leading indicators. $98 billion in data center projects were blocked or delayed in 2025 alone — before any regulations changed. We track these signals so you can act before risks become compliance problems.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-highlight mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">Monitor news and community sentiment in real-time</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-highlight mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">Identify emerging risks 12-24 months before regulation</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-highlight mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">Industry-specific alerts for your sector and region</span>
+                  </li>
+                </ul>
+                <Button onClick={() => navigate("/risk-dashboard")} className="mt-4">
+                  See How It Works
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Right Column - Visual Preview (60%) */}
+              <div className="lg:col-span-3 relative">
+                <div className="relative">
+                  {/* Browser Chrome Mockup */}
+                  <div className="bg-card rounded-xl shadow-2xl border overflow-hidden">
+                    {/* Browser Header */}
+                    <div className="bg-muted/50 px-4 py-3 border-b flex items-center gap-2">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-400" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                        <div className="w-3 h-3 rounded-full bg-green-400" />
+                      </div>
+                      <div className="flex-1 mx-4">
+                        <div className="bg-background rounded px-3 py-1 text-xs text-muted-foreground text-center">
+                          laguna.app/risk-dashboard
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Content Area */}
+                    <div className="p-6 bg-muted/20">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Newspaper className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold text-sm">Reputational Risk Signals</h3>
+                      </div>
+                      
+                      {/* Stacked Cards */}
+                      <div className="relative h-[280px]">
+                        {/* Card 3 - Back */}
+                        <div className="absolute top-8 left-4 right-0 bg-card rounded-lg shadow-md border p-4 transform rotate-[-2deg] opacity-60">
+                          <div className="flex items-start gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 mt-1.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">AI mega projects raise alarm in Europe's driest regions</p>
+                              <p className="text-xs text-muted-foreground mt-1">CNBC • Oct 2025</p>
+                              <div className="flex gap-1.5 mt-2">
+                                <span className="px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 text-xs">Regulatory Pressure</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card 2 - Middle */}
+                        <div className="absolute top-4 left-2 right-2 bg-card rounded-lg shadow-lg border p-4 transform rotate-[-1deg] opacity-80">
+                          <div className="flex items-start gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">$98B in projects blocked by community opposition</p>
+                              <p className="text-xs text-muted-foreground mt-1">NBC News • Nov 2025</p>
+                              <div className="flex gap-1.5 mt-2">
+                                <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-xs">Community Opposition</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card 1 - Front */}
+                        <div className="absolute top-0 left-0 right-4 bg-card rounded-lg shadow-xl border p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">UK running out of water – data centres refuse to disclose usage</p>
+                              <p className="text-xs text-muted-foreground mt-1">BBC News • Dec 2025</p>
+                              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">Tech firms failing to disclose water consumption as concerns grow over UK water supply shortages.</p>
+                              <div className="flex gap-1.5 mt-3">
+                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">Data Centers</span>
+                                <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-xs">Water Scarcity</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Risk Quote Banner */}
+        <section className="py-12 bg-primary/5 border-y">
+          <div className="container px-4 md:px-6">
+            <div className="text-center max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl font-serif italic text-foreground">
+                "Reputational risk today → Regulatory risk tomorrow → Operational risk next year"
+              </p>
+              <p className="text-sm text-muted-foreground mt-3">
+                Get ahead of the curve.
+              </p>
             </div>
           </div>
         </section>
