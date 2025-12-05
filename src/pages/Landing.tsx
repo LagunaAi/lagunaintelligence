@@ -381,17 +381,6 @@ export default function Landing() {
           </section>
         )}
 
-        {/* Team Section */}
-        <section className="py-20 bg-muted/30">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-3xl mx-auto text-center space-y-4">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Built by Students at SSE Business Lab</h2>
-              <p className="text-lg text-muted-foreground">
-                Laguna is developed by Logan Whitall and David Selin at SSE Business Lab, tackling the lack of standardized outcome data in water technology investments.
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <section className="py-20 md:py-32">
