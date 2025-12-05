@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Download, MessageSquare, Search, Calendar } from "lucide-react";
 import RiskScoreCard from "@/components/risk/RiskScoreCard";
 import RecommendationCard from "@/components/risk/RecommendationCard";
+import ReputationalRiskFeed from "@/components/risk/ReputationalRiskFeed";
 
 interface RiskAssessment {
   id: string;
@@ -185,6 +186,11 @@ const RiskDashboard = () => {
               </div>
             </div>
           )}
+
+          {/* Reputational Risk Signals */}
+          <div className="mb-8">
+            <ReputationalRiskFeed />
+          </div>
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
