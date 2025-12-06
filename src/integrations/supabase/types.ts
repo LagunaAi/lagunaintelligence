@@ -54,7 +54,7 @@ export type Database = {
           project_id: string
           roi_percent: number | null
           source_url: string | null
-          total_investment_usd: number
+          total_investment_usd: number | null
         }
         Insert: {
           annual_operating_cost_usd?: number | null
@@ -68,7 +68,7 @@ export type Database = {
           project_id: string
           roi_percent?: number | null
           source_url?: string | null
-          total_investment_usd: number
+          total_investment_usd?: number | null
         }
         Update: {
           annual_operating_cost_usd?: number | null
@@ -82,7 +82,7 @@ export type Database = {
           project_id?: string
           roi_percent?: number | null
           source_url?: string | null
-          total_investment_usd?: number
+          total_investment_usd?: number | null
         }
         Relationships: [
           {
