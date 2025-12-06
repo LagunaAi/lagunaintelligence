@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,6 +84,15 @@ interface RiskData {
   recommendations: any[];
 }
 
+const STORAGE_KEY = "laguna_quick_scan_state";
+
+interface StoredState {
+  step: "input" | "processing" | "review" | "complete";
+  description: string;
+  parsedData: ParsedData | null;
+  riskData: RiskData | null;
+}
+
 const examplePrompts = [
   { label: "Chip factory in Phoenix", text: "We are a semiconductor manufacturing company in Phoenix, Arizona" },
   { label: "Data center in Dublin", text: "We run 2 data centers in Dublin, Ireland. We've faced some community pushback recently about water use." },
@@ -98,6 +107,32 @@ const QuickScanForm = () => {
   const [step, setStep] = useState<"input" | "processing" | "review" | "complete">("input");
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [riskData, setRiskData] = useState<RiskData | null>(null);
+
+  // Load persisted state on mount
+  useEffect(() => {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const state: StoredState = JSON.parse(stored);
+        if (state.step === "review" && state.parsedData && state.riskData) {
+          setStep(state.step);
+          setDescription(state.description);
+          setParsedData(state.parsedData);
+          setRiskData(state.riskData);
+        }
+      } catch (e) {
+        console.error("Failed to restore quick scan state:", e);
+      }
+    }
+  }, []);
+
+  // Persist state when it changes
+  useEffect(() => {
+    if (step === "review" && parsedData && riskData) {
+      const state: StoredState = { step, description, parsedData, riskData };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+  }, [step, description, parsedData, riskData]);
 
   const handleAnalyze = async () => {
     if (!description.trim()) {
@@ -218,6 +253,7 @@ const QuickScanForm = () => {
       if (insertError) throw insertError;
 
       setStep("complete");
+      sessionStorage.removeItem(STORAGE_KEY); // Clear persisted state
       toast.success("Quick scan completed!");
       navigate('/risk-dashboard');
     } catch (error: any) {
@@ -233,6 +269,7 @@ const QuickScanForm = () => {
     setParsedData(null);
     setRiskData(null);
     setDescription("");
+    sessionStorage.removeItem(STORAGE_KEY); // Clear persisted state
   };
 
   const handleFieldUpdate = (key: string, value: string | number) => {
