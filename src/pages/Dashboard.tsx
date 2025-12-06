@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     totalProjects: 0,
     avgRoi: 0,
+    roiProjectCount: 0,
     totalWaterSaved: 0,
     projectsThisMonth: 0,
   });
@@ -35,12 +36,15 @@ export default function Dashboard() {
 
     const totalProjects = projects?.length || 0;
     
-    const avgRoi = financials && financials.length > 0
-      ? financials.reduce((acc, f) => acc + (f.roi_percent || 0), 0) / financials.length
+    // Only count projects with actual ROI data (not null)
+    const projectsWithRoi = financials?.filter(f => f.roi_percent !== null && f.roi_percent !== undefined) || [];
+    const avgRoi = projectsWithRoi.length > 0
+      ? projectsWithRoi.reduce((acc, f) => acc + (f.roi_percent || 0), 0) / projectsWithRoi.length
       : 0;
 
+    // Sum water saved from all projects with data
     const totalWaterSaved = outcomes && outcomes.length > 0
-      ? outcomes.reduce((acc, o) => acc + (o.water_saved_m3_year || 0), 0)
+      ? outcomes.reduce((acc, o) => acc + (Number(o.water_saved_m3_year) || 0), 0)
       : 0;
 
     const thisMonth = new Date();
@@ -52,6 +56,7 @@ export default function Dashboard() {
     setStats({
       totalProjects,
       avgRoi: Math.round(avgRoi * 10) / 10,
+      roiProjectCount: projectsWithRoi.length,
       totalWaterSaved: Math.round(totalWaterSaved),
       projectsThisMonth,
     });
@@ -95,7 +100,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="text-2xl font-bold data-value">{stats.avgRoi}%</div>
                 <p className="text-xs text-muted-foreground">
-                  Across all projects
+                  Based on {stats.roiProjectCount} projects with verified ROI data
                 </p>
               </CardContent>
             </Card>
