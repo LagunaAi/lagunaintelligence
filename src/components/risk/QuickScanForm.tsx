@@ -63,6 +63,14 @@ interface ParsedData {
     example_project?: string | null;
   }>;
   newsKeywords?: string[];
+  reputationalNews?: Array<{
+    headline: string;
+    source: string;
+    date: string;
+    summary: string;
+    tags: string[];
+    sentiment: "negative" | "warning";
+  }>;
 }
 
 interface RiskData {
@@ -546,6 +554,7 @@ const QuickScanForm = () => {
           industrySector={parsedData.industrySector}
           country={parsedData.primaryLocationCountry}
           newsKeywords={parsedData.newsKeywords}
+          reputationalNews={parsedData.reputationalNews}
         />
 
         {/* Action buttons */}

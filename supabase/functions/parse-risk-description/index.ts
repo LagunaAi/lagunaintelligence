@@ -212,8 +212,25 @@ You MUST respond in valid JSON format:
     "string (relevant fact about this region)",
     "string (relevant benchmark or comparison)"
   ],
-  "news_keywords": ["array of keywords for filtering relevant news articles"]
+  "news_keywords": ["array of keywords for filtering relevant news articles"],
+  "reputational_news": [
+    {
+      "headline": "string (realistic news headline specific to this industry and location)",
+      "source": "string (plausible news source name)",
+      "date": "2024",
+      "summary": "string (2-3 sentence summary of the news story)",
+      "tags": ["array of 1-2 relevant tags like 'Water Scarcity', 'Community Opposition', 'Regulatory Pressure', 'Environmental Impact']",
+      "sentiment": "negative" or "warning"
+    }
+  ]
 }
+
+GENERATE 4-5 REALISTIC NEWS HEADLINES in reputational_news that:
+- Are specific to the user's industry and location
+- Reflect real-world water risk issues that industry/region faces
+- Include a mix of regulatory, community, environmental, and financial concerns
+- Sound like actual news headlines (use realistic publication names)
+- Help the user understand reputational risks in their context
 
 ## IMPORTANT RULES
 
@@ -355,6 +372,9 @@ serve(async (req) => {
       
       // News keywords for filtering reputational risk articles
       newsKeywords: parsedResult.news_keywords || [],
+      
+      // AI-generated reputational news
+      reputationalNews: parsedResult.reputational_news || [],
       
       // Industry benchmark context
       industryBenchmark: {
