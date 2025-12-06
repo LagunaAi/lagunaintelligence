@@ -14,7 +14,10 @@ import ProjectDetail from "./pages/ProjectDetail";
 import RiskAssessment from "./pages/RiskAssessment";
 import RiskDashboard from "./pages/RiskDashboard";
 import Admin from "./pages/Admin";
+import Demo from "./pages/Demo";
+import QRCode from "./pages/QRCode";
 import NotFound from "./pages/NotFound";
+import { DemoProvider } from "./contexts/DemoContext";
 
 const queryClient = new QueryClient();
 
@@ -24,20 +27,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/ask" element={<AskLaguna />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/risk-assessment" element={<RiskAssessment />} />
-          <Route path="/risk-dashboard" element={<RiskDashboard />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <DemoProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/ask" element={<AskLaguna />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/project/:id" element={<ProjectDetail />} />
+            <Route path="/risk-assessment" element={<RiskAssessment />} />
+            <Route path="/risk-dashboard" element={<RiskDashboard />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/qr" element={<QRCode />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </DemoProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
