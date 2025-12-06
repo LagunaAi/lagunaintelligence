@@ -272,16 +272,51 @@ const QuickScanForm = () => {
     sessionStorage.removeItem(STORAGE_KEY); // Clear persisted state
   };
 
-  const handleFieldUpdate = (key: string, value: string | number) => {
+  const handleFieldUpdate = async (key: string, value: string | number) => {
     if (!parsedData) return;
-    setParsedData({
+    
+    const updatedParsedData = {
       ...parsedData,
       [key]: value,
       confidenceFields: {
         ...parsedData.confidenceFields,
         [key]: "stated" // User corrected it, so now it's stated
       }
-    });
+    };
+    setParsedData(updatedParsedData);
+
+    // Recalculate risk scores with updated values
+    try {
+      toast.info("Recalculating risk scores...");
+      
+      const { data: risks, error: riskError } = await supabase.functions.invoke('calculate-risk', {
+        body: {
+          industrySector: updatedParsedData.industrySector,
+          waterSources: updatedParsedData.waterSources,
+          waterDisruptions: updatedParsedData.waterDisruptions,
+          currentTreatment: updatedParsedData.currentTreatment,
+          primaryLocationCountry: updatedParsedData.primaryLocationCountry,
+          primaryLocationRegion: updatedParsedData.primaryLocationRegion,
+          intakeWaterQuality: updatedParsedData.intakeWaterQuality,
+          facilitiesCount: updatedParsedData.facilitiesCount,
+          estimatedWaterConsumption: updatedParsedData.estimatedWaterConsumption,
+          primaryContaminants: [],
+          treatmentBeforeUse: "Don't know",
+          dischargePermitType: "Municipal sewer system",
+          dischargeQualityConcerns: false,
+          upstreamPollutionSources: [],
+          waterQualityTestingFrequency: "Never / Don't know"
+        }
+      });
+
+      if (riskError) throw riskError;
+
+      setRiskData(risks);
+      toast.success("Risk scores updated");
+    } catch (error: any) {
+      console.error('Error recalculating risks:', error);
+      toast.error("Failed to recalculate risks");
+    }
   };
 
   // Build risk items for KeyRisksProfile using AI-generated factors when available
@@ -600,12 +635,13 @@ const QuickScanForm = () => {
           industry={parsedData.industrySector}
         />
 
-        {/* Reputational Risk Signals */}
+        {/* Reputational Risk Signals - Compact mode for Quick Scan */}
         <ReputationalRiskFeed
           industrySector={parsedData.industrySector}
           country={parsedData.primaryLocationCountry}
           newsKeywords={parsedData.newsKeywords}
           reputationalNews={parsedData.reputationalNews}
+          compact={true}
         />
 
         {/* Action buttons */}
