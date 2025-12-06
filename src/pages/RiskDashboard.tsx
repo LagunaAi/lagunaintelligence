@@ -64,7 +64,7 @@ interface ReputationalNewsItem {
   sentiment: 'negative' | 'warning';
 }
 
-const QUICK_SCAN_STORAGE_KEY = 'laguna-quick-scan-state';
+const QUICK_SCAN_STORAGE_KEY = 'laguna_quick_scan_state';
 
 const RiskDashboard = () => {
   const navigate = useNavigate();
