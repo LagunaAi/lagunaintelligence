@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingUp, Shield, Droplets, DollarSign } from "lucide-react";
+import { AlertTriangle, Landmark, Shield, Droplets, DollarSign } from "lucide-react";
 
 interface RiskItem {
   name: string;
   score: number;
   level: 'low' | 'medium' | 'high';
   reason: string;
-  icon: 'physical' | 'regulatory' | 'reputational' | 'financial' | 'quality';
+  icon: 'physical' | 'regulatory' | 'reputational' | 'financial' | 'governance';
 }
 
 interface KeyRisksProfileProps {
@@ -21,7 +21,7 @@ const iconMap = {
   regulatory: Shield,
   reputational: AlertTriangle,
   financial: DollarSign,
-  quality: TrendingUp
+  governance: Landmark
 };
 
 const levelStyles = {

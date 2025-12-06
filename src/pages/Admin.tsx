@@ -4,9 +4,10 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Users, BarChart3, Briefcase } from "lucide-react";
+import { Loader2, Users, BarChart3, Briefcase, Database } from "lucide-react";
 import { AdminProjects } from "@/components/admin/AdminProjects";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
@@ -15,6 +16,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [generatingData, setGeneratingData] = useState(false);
 
   useEffect(() => {
     checkAdminAccess();
@@ -54,6 +56,117 @@ const Admin = () => {
     }
   };
 
+  const generateMockFinancialData = async () => {
+    setGeneratingData(true);
+    try {
+      // Fetch all projects
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id, name');
+
+      if (projectsError) throw projectsError;
+      if (!projects || projects.length === 0) {
+        toast.error("No projects found to generate data for");
+        return;
+      }
+
+      // Fetch existing financials to avoid duplicates
+      const { data: existingFinancials, error: financialsError } = await supabase
+        .from('financials')
+        .select('project_id');
+
+      if (financialsError) throw financialsError;
+
+      const existingProjectIds = new Set(existingFinancials?.map(f => f.project_id) || []);
+      const projectsWithoutFinancials = projects.filter(p => !existingProjectIds.has(p.id));
+
+      if (projectsWithoutFinancials.length === 0) {
+        toast.info("All projects already have financial data");
+        return;
+      }
+
+      // Generate mock financials for each project
+      const mockFinancials = projectsWithoutFinancials.map(project => ({
+        project_id: project.id,
+        total_investment_usd: Math.round((Math.random() * 4500000 + 500000) * 100) / 100, // $500k - $5M
+        roi_percent: Math.round((Math.random() * 20 + 5) * 100) / 100, // 5% - 25%
+        payback_years: Math.round((Math.random() * 6.5 + 1.5) * 10) / 10, // 1.5 - 8 years
+        confidence_score: 85,
+        data_source: "Mock Data Generator",
+        annual_revenue_usd: Math.round((Math.random() * 2000000 + 100000) * 100) / 100,
+        annual_operating_cost_usd: Math.round((Math.random() * 500000 + 50000) * 100) / 100,
+        npv_usd: Math.round((Math.random() * 3000000 + 200000) * 100) / 100,
+        irr_percent: Math.round((Math.random() * 15 + 8) * 100) / 100
+      }));
+
+      const { error: insertError } = await supabase
+        .from('financials')
+        .insert(mockFinancials);
+
+      if (insertError) throw insertError;
+
+      toast.success(`Generated financial data for ${mockFinancials.length} projects`);
+    } catch (error: any) {
+      console.error('Error generating mock data:', error);
+      toast.error(error.message || "Failed to generate mock data");
+    } finally {
+      setGeneratingData(false);
+    }
+  };
+
+  const generateMockOutcomesData = async () => {
+    setGeneratingData(true);
+    try {
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('id, name');
+
+      if (projectsError) throw projectsError;
+      if (!projects || projects.length === 0) {
+        toast.error("No projects found to generate data for");
+        return;
+      }
+
+      const { data: existingOutcomes, error: outcomesError } = await supabase
+        .from('outcomes')
+        .select('project_id');
+
+      if (outcomesError) throw outcomesError;
+
+      const existingProjectIds = new Set(existingOutcomes?.map(o => o.project_id) || []);
+      const projectsWithoutOutcomes = projects.filter(p => !existingProjectIds.has(p.id));
+
+      if (projectsWithoutOutcomes.length === 0) {
+        toast.info("All projects already have outcomes data");
+        return;
+      }
+
+      const mockOutcomes = projectsWithoutOutcomes.map(project => ({
+        project_id: project.id,
+        water_produced_m3_day: Math.round(Math.random() * 50000 + 1000),
+        water_saved_m3_year: Math.round(Math.random() * 5000000 + 100000),
+        energy_saved_kwh_year: Math.round(Math.random() * 10000000 + 500000),
+        co2_avoided_tons_year: Math.round(Math.random() * 50000 + 1000),
+        jobs_created: Math.round(Math.random() * 200 + 10),
+        population_served: Math.round(Math.random() * 500000 + 10000),
+        confidence_score: 85
+      }));
+
+      const { error: insertError } = await supabase
+        .from('outcomes')
+        .insert(mockOutcomes);
+
+      if (insertError) throw insertError;
+
+      toast.success(`Generated outcomes data for ${mockOutcomes.length} projects`);
+    } catch (error: any) {
+      console.error('Error generating mock outcomes:', error);
+      toast.error(error.message || "Failed to generate mock outcomes");
+    } finally {
+      setGeneratingData(false);
+    }
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -74,9 +187,29 @@ const Admin = () => {
     <ProtectedRoute>
       <Layout>
         <div className="container mx-auto py-8 px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-            <p className="text-muted-foreground">Manage projects, users, and view platform analytics</p>
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
+              <p className="text-muted-foreground">Manage projects, users, and view platform analytics</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={generateMockFinancialData}
+                disabled={generatingData}
+              >
+                {generatingData ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Database className="h-4 w-4 mr-2" />}
+                Generate Mock Financials
+              </Button>
+              <Button
+                variant="outline"
+                onClick={generateMockOutcomesData}
+                disabled={generatingData}
+              >
+                {generatingData ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Database className="h-4 w-4 mr-2" />}
+                Generate Mock Outcomes
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="projects" className="space-y-6">
