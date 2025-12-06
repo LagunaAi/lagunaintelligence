@@ -80,7 +80,7 @@ interface RiskData {
   regulatoryRisk: number;
   reputationalRisk: number;
   financialRisk: number;
-  waterQualityRisk: number;
+  governanceRisk: number;
   recommendations: any[];
 }
 
@@ -173,7 +173,7 @@ const QuickScanForm = () => {
           regulatoryRisk: parsed.riskScores.regulatory?.score || 50,
           reputationalRisk: parsed.riskScores.reputational?.score || 50,
           financialRisk: parsed.riskScores.financial?.score || 50,
-          waterQualityRisk: 50, // AI doesn't provide this separately, use governance as proxy
+          governanceRisk: parsed.riskScores.governance?.score || 50,
           recommendations: parsed.recommendations || []
         };
         setRiskData(aiRisks);
@@ -246,7 +246,7 @@ const QuickScanForm = () => {
           regulatory_risk_score: riskData.regulatoryRisk,
           reputational_risk_score: riskData.reputationalRisk,
           financial_risk_score: riskData.financialRisk,
-          water_quality_risk_score: riskData.waterQualityRisk,
+          water_quality_risk_score: riskData.governanceRisk,
           recommended_actions: riskData.recommendations
         });
 
@@ -325,7 +325,7 @@ const QuickScanForm = () => {
     score: number;
     level: 'low' | 'medium' | 'high';
     reason: string;
-    icon: 'physical' | 'regulatory' | 'reputational' | 'financial' | 'quality';
+    icon: 'physical' | 'regulatory' | 'reputational' | 'financial' | 'governance';
   }> => {
     if (!riskData || !parsedData) return [];
 
@@ -383,10 +383,10 @@ const QuickScanForm = () => {
       },
       {
         name: "Governance Risk",
-        score: riskData.waterQualityRisk,
-        level: getLevel(riskData.waterQualityRisk),
+        score: riskData.governanceRisk,
+        level: getLevel(riskData.governanceRisk),
         reason: getFactorReason('governance', `Water rights and jurisdiction complexity for ${location}`),
-        icon: 'quality' as const
+        icon: 'governance' as const
       }
     ];
   };
@@ -630,7 +630,7 @@ const QuickScanForm = () => {
             financialRisk: riskData.financialRisk,
             regulatoryRisk: riskData.regulatoryRisk,
             reputationalRisk: riskData.reputationalRisk,
-            governanceRisk: riskData.waterQualityRisk
+            governanceRisk: riskData.governanceRisk
           }}
           industry={parsedData.industrySector}
         />

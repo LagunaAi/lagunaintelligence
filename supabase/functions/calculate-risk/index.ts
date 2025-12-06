@@ -146,44 +146,45 @@ serve(async (req) => {
     if (waterIntensiveSectors.includes(industrySector)) financialRisk += 20;
     if (physicalRisk > 60) financialRisk += 15; // High physical risk = financial exposure
 
-    // Water Quality Risk
-    let waterQualityRisk = 20;
-    const qualityScores: Record<string, number> = { 
-      'Excellent': 5, 'Good': 15, 'Fair': 30, 'Poor': 50, 'Unknown': 35 
-    };
-    waterQualityRisk = qualityScores[intakeWaterQuality] || 35;
+    // Governance Risk (political stability, water rights complexity)
+    let governanceRisk = 30;
     
-    // Adjust for contaminants
-    if (primaryContaminants && primaryContaminants.length > 0) {
-      const severeContaminants = ['Heavy metals (arsenic, lead, chromium)', 'PFAS/Forever chemicals'];
-      const hasSevere = primaryContaminants.some((c: string) => severeContaminants.includes(c));
-      if (hasSevere) waterQualityRisk += 20;
-      waterQualityRisk += primaryContaminants.length * 3;
+    // High governance risk regions with complex water rights
+    const highGovernanceRiskRegions = ['California', 'Arizona', 'Nevada', 'India', 'China', 'Middle East'];
+    const normalizedRegion = primaryLocationRegion?.trim() || "";
+    const normalizedCountryLower = normalizedCountry.toLowerCase();
+    
+    // Check if region matches high-risk regions
+    const isHighGovernanceRisk = highGovernanceRiskRegions.some(region => {
+      const regionLower = region.toLowerCase();
+      return normalizedRegion.toLowerCase().includes(regionLower) ||
+             normalizedCountryLower.includes(regionLower) ||
+             regionLower.includes(normalizedCountryLower);
+    });
+    
+    if (isHighGovernanceRisk) {
+      governanceRisk += 20;
     }
     
-    // Adjust for upstream pollution
-    if (upstreamPollutionSources && upstreamPollutionSources.length > 0 && 
-        !upstreamPollutionSources.includes('None known')) {
-      waterQualityRisk += upstreamPollutionSources.length * 5;
+    // Additional adjustments for water-intensive sectors in regulated areas
+    const highlyRegulatedSectors = ['Mining', 'Agriculture', 'Energy'];
+    if (highlyRegulatedSectors.includes(industrySector) && isHighGovernanceRisk) {
+      governanceRisk += 10;
     }
-    
-    // Testing frequency factor
-    if (waterQualityTestingFrequency === 'Never / Don\'t know') waterQualityRisk += 10;
-    if (waterQualityTestingFrequency === 'Annually or less') waterQualityRisk += 5;
 
     // Cap all scores to 100
     physicalRisk = Math.min(Math.round(physicalRisk), 100);
     regulatoryRisk = Math.min(Math.round(regulatoryRisk), 100);
     reputationalRisk = Math.min(Math.round(reputationalRisk), 100);
     financialRisk = Math.min(Math.round(financialRisk), 100);
-    waterQualityRisk = Math.min(Math.round(waterQualityRisk), 100);
+    governanceRisk = Math.min(Math.round(governanceRisk), 100);
 
     const overallRisk = Math.round(
       physicalRisk * 0.25 + 
       regulatoryRisk * 0.2 + 
       reputationalRisk * 0.15 + 
       financialRisk * 0.2 + 
-      waterQualityRisk * 0.2
+      governanceRisk * 0.2
     );
 
     // Generate recommendations based on risk factors
@@ -213,11 +214,11 @@ serve(async (req) => {
       });
     }
     
-    if (waterQualityRisk > 50) {
+    if (governanceRisk > 50) {
       recommendations.push({
-        title: "Enhance Water Quality Monitoring",
+        title: "Strengthen Water Rights Position",
         priority: "medium",
-        description: "Implement continuous water quality monitoring and consider additional pre-treatment for incoming water."
+        description: "Review water rights and permits. Consider legal consultation to secure long-term water access in regions with complex water governance."
       });
     }
     
@@ -252,7 +253,7 @@ serve(async (req) => {
         regulatoryRisk,
         reputationalRisk,
         financialRisk,
-        waterQualityRisk,
+        governanceRisk,
         recommendations,
         source: riskSource
       }),
