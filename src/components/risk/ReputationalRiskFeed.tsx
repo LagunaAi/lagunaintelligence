@@ -121,9 +121,15 @@ const ReputationalRiskFeed = ({ industrySector, country }: ReputationalRiskFeedP
     }
   };
 
-  const openGoogleNews = (headline: string) => {
-    const encodedQuery = encodeURIComponent(headline);
-    window.open(`https://news.google.com/search?q=${encodedQuery}`, '_blank');
+  const getGoogleNewsUrl = (headline: string) => {
+    return `https://news.google.com/search?q=${encodeURIComponent(headline)}`;
+  };
+
+  const getViewAllUrl = () => {
+    const query = industrySector && country 
+      ? `${industrySector} water risk ${country}`
+      : "industrial water risk news";
+    return `https://news.google.com/search?q=${encodeURIComponent(query)}`;
   };
 
   const displayArticles = articles.length > 0 ? articles : (industrySector && country ? getDefaultArticles(industrySector, country) : []);
@@ -179,10 +185,12 @@ const ReputationalRiskFeed = ({ industrySector, country }: ReputationalRiskFeedP
                 {displayArticles.map((article) => {
                   const sentimentStyles = getSentimentStyles(article.sentiment);
                   return (
-                    <div
+                    <a
                       key={article.id}
-                      onClick={() => openGoogleNews(article.headline)}
-                      className={`block p-4 rounded-lg border transition-all hover:shadow-md hover:border-primary/30 cursor-pointer ${sentimentStyles.bgClass}`}
+                      href={getGoogleNewsUrl(article.headline)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`block p-4 rounded-lg border transition-all hover:shadow-md hover:border-primary/30 ${sentimentStyles.bgClass}`}
                     >
                       <div className="flex items-start gap-3">
                         {/* Sentiment Indicator */}
@@ -222,7 +230,7 @@ const ReputationalRiskFeed = ({ industrySector, country }: ReputationalRiskFeedP
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </a>
                   );
                 })}
               </div>
@@ -230,19 +238,20 @@ const ReputationalRiskFeed = ({ industrySector, country }: ReputationalRiskFeedP
             
             {/* View All Link */}
             <div className="mt-4 pt-4 border-t">
-              <Button 
-                variant="ghost" 
-                className="w-full text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  const query = industrySector && country 
-                    ? `${industrySector} water risk ${country}`
-                    : "industrial water risk news";
-                  window.open(`https://news.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-                }}
+              <a 
+                href={getViewAllUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
               >
-                View All Risk Signals
-                <ExternalLink className="h-4 w-4 ml-2" />
-              </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-muted-foreground hover:text-foreground"
+                >
+                  View All Risk Signals
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </a>
             </div>
           </CardContent>
         </CollapsibleContent>
