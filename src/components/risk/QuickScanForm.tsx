@@ -11,6 +11,7 @@ import DetectedDataSection from "./DetectedDataSection";
 import KeyRisksProfile from "./KeyRisksProfile";
 import IndustryInsightsCard from "./IndustryInsightsCard";
 import ReputationalRiskFeed from "./ReputationalRiskFeed";
+import RecommendedActions from "./RecommendedActions";
 
 interface RiskScoreDetail {
   score: number;
@@ -547,6 +548,19 @@ const QuickScanForm = () => {
           industry={parsedData.industrySector}
           location={parsedData.primaryLocationCountry}
           insights={buildInsights()}
+        />
+
+        {/* Recommended Actions */}
+        <RecommendedActions
+          recommendations={parsedData.recommendations}
+          riskScores={{
+            physicalRisk: riskData.physicalRisk,
+            financialRisk: riskData.financialRisk,
+            regulatoryRisk: riskData.regulatoryRisk,
+            reputationalRisk: riskData.reputationalRisk,
+            governanceRisk: riskData.waterQualityRisk
+          }}
+          industry={parsedData.industrySector}
         />
 
         {/* Reputational Risk Signals */}
