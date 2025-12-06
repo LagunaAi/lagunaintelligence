@@ -20,13 +20,15 @@ interface ReputationalRiskFeedProps {
   country?: string;
   newsKeywords?: string[];
   reputationalNews?: NewsArticle[];
+  compact?: boolean; // Show only top 2 items in compact mode
 }
 
 const ReputationalRiskFeed = ({ 
   industrySector, 
   country, 
   newsKeywords = [],
-  reputationalNews = []
+  reputationalNews = [],
+  compact = false
 }: ReputationalRiskFeedProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -70,7 +72,9 @@ const ReputationalRiskFeed = ({
   };
 
   // Use AI-generated news if available, otherwise show placeholder
-  const displayArticles = reputationalNews.length > 0 ? reputationalNews : [];
+  const allArticles = reputationalNews.length > 0 ? reputationalNews : [];
+  const displayArticles = compact ? allArticles.slice(0, 2) : allArticles;
+  const hasMoreArticles = compact && allArticles.length > 2;
   const hasAINews = reputationalNews.length > 0;
 
   if (!hasAINews && !industrySector) {
@@ -180,9 +184,14 @@ const ReputationalRiskFeed = ({
               </div>
             )}
             
-            {/* View All Link */}
+            {/* View More / Search Link */}
             {(industrySector || country) && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-4 pt-4 border-t flex flex-col gap-2">
+                {hasMoreArticles && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    +{allArticles.length - 2} more risk signals available in full dashboard
+                  </p>
+                )}
                 <a 
                   href={getViewAllUrl()}
                   target="_blank"
