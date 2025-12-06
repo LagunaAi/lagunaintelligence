@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.generate-risk-news]
 verify_jwt = true
+
+[functions.generate-comparative-intelligence]
+verify_jwt = true

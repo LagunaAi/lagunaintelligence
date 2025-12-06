@@ -10,6 +10,9 @@ import { Loader2, Download, MessageSquare, Search, Calendar } from "lucide-react
 import RiskScoreCard from "@/components/risk/RiskScoreCard";
 import RecommendationCard from "@/components/risk/RecommendationCard";
 import ReputationalRiskFeed from "@/components/risk/ReputationalRiskFeed";
+import IndustryBenchmark from "@/components/risk/IndustryBenchmark";
+import FloodRiskSpotlight from "@/components/risk/FloodRiskSpotlight";
+import PeerInsights from "@/components/risk/PeerInsights";
 
 interface RiskAssessment {
   id: string;
@@ -25,16 +28,49 @@ interface RiskAssessment {
   water_quality_risk_score: number;
   recommended_actions: any;
   created_at: string;
+  annual_water_consumption: number;
+  water_unit: string;
+}
+
+interface ComparativeIntelligence {
+  industryBenchmark: {
+    userConsumption: number;
+    industryAverage: number;
+    unit: string;
+    status: 'efficient' | 'average' | 'high';
+    percentageDifference: number;
+    insight: string;
+  };
+  floodRisk: {
+    riskLevel: 'low' | 'medium' | 'high';
+    score: number;
+    factors: string[];
+    seasonalPeak: string;
+    insight: string;
+  };
+  peerInsights: Array<{
+    title: string;
+    description: string;
+    frequency: 'Common' | 'Very Common' | 'Emerging';
+  }>;
 }
 
 const RiskDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
+  const [intelligence, setIntelligence] = useState<ComparativeIntelligence | null>(null);
+  const [intelligenceLoading, setIntelligenceLoading] = useState(false);
 
   useEffect(() => {
     loadLatestAssessment();
   }, []);
+
+  useEffect(() => {
+    if (assessment) {
+      loadComparativeIntelligence();
+    }
+  }, [assessment]);
 
   const loadLatestAssessment = async () => {
     try {
@@ -63,6 +99,33 @@ const RiskDashboard = () => {
       toast.error(error.message || "Failed to load assessment");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadComparativeIntelligence = async () => {
+    if (!assessment) return;
+
+    setIntelligenceLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-comparative-intelligence', {
+        body: {
+          industrySector: assessment.industry_sector,
+          country: assessment.primary_location_country,
+          region: assessment.primary_location_region,
+          annualWaterConsumption: assessment.annual_water_consumption,
+          waterUnit: assessment.water_unit
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      setIntelligence(data);
+    } catch (error: any) {
+      console.error('Error loading comparative intelligence:', error);
+      // Don't show toast - silently fail and just don't show the section
+    } finally {
+      setIntelligenceLoading(false);
     }
   };
 
@@ -139,6 +202,45 @@ const RiskDashboard = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Comparative Intelligence Section */}
+          {(intelligence || intelligenceLoading) && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-4">Comparative Intelligence</h2>
+              {intelligenceLoading ? (
+                <div className="flex items-center gap-3 text-muted-foreground p-8 border rounded-lg">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Generating industry insights...</span>
+                </div>
+              ) : intelligence && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <IndustryBenchmark
+                    userConsumption={intelligence.industryBenchmark.userConsumption}
+                    industryAverage={intelligence.industryBenchmark.industryAverage}
+                    unit={intelligence.industryBenchmark.unit}
+                    status={intelligence.industryBenchmark.status}
+                    percentageDifference={intelligence.industryBenchmark.percentageDifference}
+                    insight={intelligence.industryBenchmark.insight}
+                    industry={assessment.industry_sector}
+                  />
+                  <FloodRiskSpotlight
+                    region={assessment.primary_location_region || ''}
+                    country={assessment.primary_location_country}
+                    riskLevel={intelligence.floodRisk.riskLevel}
+                    score={intelligence.floodRisk.score}
+                    factors={intelligence.floodRisk.factors}
+                    seasonalPeak={intelligence.floodRisk.seasonalPeak}
+                    insight={intelligence.floodRisk.insight}
+                  />
+                  <PeerInsights
+                    industry={assessment.industry_sector}
+                    country={assessment.primary_location_country}
+                    insights={intelligence.peerInsights}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Risk Breakdown */}
           <div className="mb-8">
