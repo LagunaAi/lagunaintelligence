@@ -43,7 +43,9 @@ export const FinancialCharts = ({ financials }: FinancialChartsProps) => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              ${(financial.total_investment_usd / 1000000).toFixed(2)}M
+              {financial.total_investment_usd && financial.total_investment_usd > 0
+                ? `$${(financial.total_investment_usd / 1000000).toFixed(2)}M`
+                : 'N/A'}
             </p>
           </CardContent>
         </Card>
