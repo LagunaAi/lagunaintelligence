@@ -228,6 +228,30 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_risk_scores: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          physical_risk_score: number
+          region: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          physical_risk_score: number
+          region: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          physical_risk_score?: number
+          region?: string
+        }
+        Relationships: []
+      }
       risk_assessments: {
         Row: {
           annual_water_consumption: number
