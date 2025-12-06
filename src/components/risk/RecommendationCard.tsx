@@ -20,7 +20,7 @@ const RecommendationCard = ({ title, description, priority, industry }: Recommen
     const searchQuery = industry 
       ? `${title} solutions for ${industry} industry`
       : `${title} water management solutions`;
-    return `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+    return `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`;
   };
 
   return (

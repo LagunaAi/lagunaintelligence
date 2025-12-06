@@ -122,14 +122,14 @@ const ReputationalRiskFeed = ({ industrySector, country }: ReputationalRiskFeedP
   };
 
   const getGoogleNewsUrl = (headline: string) => {
-    return `https://news.google.com/search?q=${encodeURIComponent(headline)}`;
+    return `https://duckduckgo.com/?q=${encodeURIComponent(headline + " news")}&ia=news`;
   };
 
   const getViewAllUrl = () => {
     const query = industrySector && country 
       ? `${industrySector} water risk ${country}`
       : "industrial water risk news";
-    return `https://news.google.com/search?q=${encodeURIComponent(query)}`;
+    return `https://duckduckgo.com/?q=${encodeURIComponent(query)}&ia=news`;
   };
 
   const displayArticles = articles.length > 0 ? articles : (industrySector && country ? getDefaultArticles(industrySector, country) : []);
