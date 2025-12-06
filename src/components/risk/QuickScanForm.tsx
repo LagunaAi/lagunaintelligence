@@ -6,13 +6,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles, AlertTriangle, Zap } from "lucide-react";
+import { Loader2, Sparkles, AlertTriangle, Zap, ArrowRight, RotateCcw } from "lucide-react";
+import DetectedDataSection from "./DetectedDataSection";
+import KeyRisksProfile from "./KeyRisksProfile";
+import IndustryInsightsCard from "./IndustryInsightsCard";
+
+interface ParsedData {
+  industrySector: string;
+  primaryLocationCountry: string;
+  primaryLocationRegion: string;
+  facilitiesCount: number;
+  waterSources: string[];
+  waterDisruptions: boolean;
+  currentTreatment: string;
+  intakeWaterQuality: string;
+  companyName: string;
+  estimatedWaterConsumption: number;
+  mentionedConcerns: string[];
+  confidenceFields: Record<string, string>;
+  industryBenchmark: {
+    waterUseM3Year: number;
+    waterUsePerDay: string;
+    typicalSources: string[];
+    keyRisks: string[];
+    description: string;
+  };
+  regionalRiskFactors: Record<string, string> | null;
+  industryInsights: string[];
+}
+
+interface RiskData {
+  overallRisk: number;
+  physicalRisk: number;
+  regulatoryRisk: number;
+  reputationalRisk: number;
+  financialRisk: number;
+  waterQualityRisk: number;
+  recommendations: any[];
+}
+
+const examplePrompts = [
+  { label: "Chip factory in Phoenix", text: "We are a semiconductor manufacturing company in Phoenix, Arizona" },
+  { label: "Data center in Dublin", text: "We run 2 data centers in Dublin, Ireland. We've faced some community pushback recently about water use." },
+  { label: "Pharma in India", text: "Pharmaceutical manufacturing plant in Hyderabad, India. Municipal water supply. Concerned about upcoming PFAS regulations." },
+  { label: "Mining in Chile", text: "Copper mining operation in Antofagasta, Chile. Groundwater and surface water sources. Past issues with water scarcity." }
+];
 
 const QuickScanForm = () => {
   const navigate = useNavigate();
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"input" | "processing" | "complete">("input");
+  const [step, setStep] = useState<"input" | "processing" | "review" | "complete">("input");
+  const [parsedData, setParsedData] = useState<ParsedData | null>(null);
+  const [riskData, setRiskData] = useState<RiskData | null>(null);
 
   const handleAnalyze = async () => {
     if (!description.trim()) {
@@ -20,7 +66,7 @@ const QuickScanForm = () => {
       return;
     }
 
-    if (description.trim().length < 20) {
+    if (description.trim().length < 15) {
       toast.error("Please provide more detail about your operation");
       return;
     }
@@ -32,29 +78,29 @@ const QuickScanForm = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Step 1: Parse description with AI
+      // Step 1: Parse description with enhanced AI
       toast.info("Analyzing your description...");
-      const { data: parsedData, error: parseError } = await supabase.functions.invoke('parse-risk-description', {
+      const { data: parsed, error: parseError } = await supabase.functions.invoke('parse-risk-description', {
         body: { description }
       });
 
       if (parseError) throw parseError;
-      if (parsedData.error) throw new Error(parsedData.error);
+      if (parsed.error) throw new Error(parsed.error);
 
-      console.log('Parsed data:', parsedData);
+      console.log('Parsed data:', parsed);
+      setParsedData(parsed);
 
       // Step 2: Calculate risk using existing function
       toast.info("Calculating risk scores...");
-      const { data: riskData, error: riskError } = await supabase.functions.invoke('calculate-risk', {
+      const { data: risks, error: riskError } = await supabase.functions.invoke('calculate-risk', {
         body: {
-          industrySector: parsedData.industrySector,
-          waterSources: parsedData.waterSources,
-          waterDisruptions: parsedData.waterDisruptions,
-          currentTreatment: parsedData.currentTreatment,
-          primaryLocationCountry: parsedData.primaryLocationCountry,
-          primaryLocationRegion: parsedData.primaryLocationRegion,
-          intakeWaterQuality: parsedData.intakeWaterQuality,
-          // Defaults for optional fields
+          industrySector: parsed.industrySector,
+          waterSources: parsed.waterSources,
+          waterDisruptions: parsed.waterDisruptions,
+          currentTreatment: parsed.currentTreatment,
+          primaryLocationCountry: parsed.primaryLocationCountry,
+          primaryLocationRegion: parsed.primaryLocationRegion,
+          intakeWaterQuality: parsed.intakeWaterQuality,
           primaryContaminants: [],
           treatmentBeforeUse: "Don't know",
           dischargePermitType: "Municipal sewer system",
@@ -66,9 +112,28 @@ const QuickScanForm = () => {
 
       if (riskError) throw riskError;
 
-      console.log('Risk data:', riskData);
+      console.log('Risk data:', risks);
+      setRiskData(risks);
+      setStep("review");
 
-      // Step 3: Save to database with quick scan flag
+    } catch (error: any) {
+      console.error('Error in quick scan:', error);
+      toast.error(error.message || "Failed to analyze. Please try again.");
+      setStep("input");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveAndContinue = async () => {
+    if (!parsedData || !riskData) return;
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Save to database
       const { error: insertError } = await supabase
         .from('risk_assessments')
         .insert({
@@ -79,7 +144,7 @@ const QuickScanForm = () => {
           water_unit: "m3/year",
           primary_location_country: parsedData.primaryLocationCountry,
           primary_location_region: parsedData.primaryLocationRegion || null,
-          facilities_count: 1,
+          facilities_count: parsedData.facilitiesCount,
           water_sources: parsedData.waterSources,
           water_disruptions_past_5y: parsedData.waterDisruptions,
           current_treatment_level: parsedData.currentTreatment,
@@ -101,96 +166,358 @@ const QuickScanForm = () => {
       toast.success("Quick scan completed!");
       navigate('/risk-dashboard');
     } catch (error: any) {
-      console.error('Error in quick scan:', error);
-      toast.error(error.message || "Failed to complete quick scan");
-      setStep("input");
+      console.error('Error saving assessment:', error);
+      toast.error(error.message || "Failed to save assessment");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            <CardTitle>AI Quick Scan</CardTitle>
-          </div>
-          <CardDescription>
-            Describe your operation in plain language and let AI analyze your water risks instantly
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Describe your operation</label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="E.g.: We are a semiconductor factory in Taiwan mainly using municipal water. We have had issues with water scarcity in previous years. Our facility treats water on-site before use in the manufacturing process."
-              className="min-h-[180px] resize-none"
-              disabled={loading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Include details like: industry type, location, water sources, any past water issues, and treatment practices.
-            </p>
-          </div>
+  const handleReset = () => {
+    setStep("input");
+    setParsedData(null);
+    setRiskData(null);
+    setDescription("");
+  };
 
-          {step === "processing" && (
-            <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+  const handleFieldUpdate = (key: string, value: string | number) => {
+    if (!parsedData) return;
+    setParsedData({
+      ...parsedData,
+      [key]: value,
+      confidenceFields: {
+        ...parsedData.confidenceFields,
+        [key]: "stated" // User corrected it, so now it's stated
+      }
+    });
+  };
+
+  // Build risk items for KeyRisksProfile
+  const buildRiskItems = (): Array<{
+    name: string;
+    score: number;
+    level: 'low' | 'medium' | 'high';
+    reason: string;
+    icon: 'physical' | 'regulatory' | 'reputational' | 'financial' | 'quality';
+  }> => {
+    if (!riskData || !parsedData) return [];
+
+    const location = parsedData.primaryLocationRegion || parsedData.primaryLocationCountry;
+    const regional = parsedData.regionalRiskFactors;
+
+    const getLevel = (score: number): 'low' | 'medium' | 'high' => {
+      if (score > 60) return 'high';
+      if (score > 30) return 'medium';
+      return 'low';
+    };
+
+    return [
+      {
+        name: "Physical Risk",
+        score: riskData.physicalRisk,
+        level: getLevel(riskData.physicalRisk),
+        reason: regional?.physicalRisk === "HIGH" 
+          ? `${location} faces significant water scarcity and drought conditions`
+          : `Water availability assessment for ${location}`,
+        icon: 'physical' as const
+      },
+      {
+        name: "Financial Risk",
+        score: riskData.financialRisk,
+        level: getLevel(riskData.financialRisk),
+        reason: regional?.financialRisk === "HIGH"
+          ? `Rising water costs and supply constraints in ${location}`
+          : `Cost volatility assessment based on regional factors`,
+        icon: 'financial' as const
+      },
+      {
+        name: "Regulatory Risk",
+        score: riskData.regulatoryRisk,
+        level: getLevel(riskData.regulatoryRisk),
+        reason: regional?.regulatoryRisk === "HIGH"
+          ? `Strict environmental regulations in ${location}`
+          : `Standard compliance requirements for ${parsedData.industrySector}`,
+        icon: 'regulatory' as const
+      },
+      {
+        name: "Reputational Risk",
+        score: riskData.reputationalRisk,
+        level: getLevel(riskData.reputationalRisk),
+        reason: parsedData.mentionedConcerns.includes("community opposition")
+          ? "Community concerns mentioned - elevated reputational exposure"
+          : `ESG and stakeholder perception for ${parsedData.industrySector}`,
+        icon: 'reputational' as const
+      },
+      {
+        name: "Water Quality Risk",
+        score: riskData.waterQualityRisk,
+        level: getLevel(riskData.waterQualityRisk),
+        reason: `Based on ${parsedData.intakeWaterQuality.toLowerCase()} intake quality and ${parsedData.currentTreatment.toLowerCase()} treatment`,
+        icon: 'quality' as const
+      }
+    ];
+  };
+
+  // Build detected fields for display
+  const buildDetectedFields = () => {
+    if (!parsedData) return [];
+
+    return [
+      {
+        label: "Industry",
+        value: parsedData.industrySector,
+        confidence: (parsedData.confidenceFields.industrySector || 'stated') as 'stated' | 'inferred',
+        key: "industrySector",
+        options: ["Semiconductors", "Data Centers", "Food & Beverage", "Pharmaceuticals", "Chemicals", "Mining", "Manufacturing", "Textiles", "Other"]
+      },
+      {
+        label: "Location",
+        value: parsedData.primaryLocationRegion 
+          ? `${parsedData.primaryLocationRegion}, ${parsedData.primaryLocationCountry}`
+          : parsedData.primaryLocationCountry,
+        confidence: (parsedData.confidenceFields.primaryLocationCountry || 'stated') as 'stated' | 'inferred',
+        key: "primaryLocationCountry",
+        editable: false
+      },
+      {
+        label: "Facilities",
+        value: parsedData.facilitiesCount,
+        confidence: (parsedData.confidenceFields.facilitiesCount || 'inferred') as 'stated' | 'inferred',
+        key: "facilitiesCount"
+      },
+      {
+        label: "Est. Water Use",
+        value: parsedData.estimatedWaterConsumption,
+        confidence: (parsedData.confidenceFields.estimatedWaterConsumption || 'inferred') as 'stated' | 'inferred',
+        key: "estimatedWaterConsumption"
+      },
+      {
+        label: "Water Sources",
+        value: parsedData.waterSources.join(", "),
+        confidence: (parsedData.confidenceFields.waterSources || 'inferred') as 'stated' | 'inferred',
+        key: "waterSources",
+        editable: false
+      }
+    ];
+  };
+
+  // Build industry insights
+  const buildInsights = () => {
+    if (!parsedData) return [];
+
+    const insights = parsedData.industryInsights.map(text => ({ text }));
+    
+    // Add regional insight if available
+    if (parsedData.regionalRiskFactors?.notes) {
+      insights.push({
+        text: parsedData.regionalRiskFactors.notes,
+        source: "Regional Analysis"
+      } as any);
+    }
+
+    return insights;
+  };
+
+  // Input step
+  if (step === "input" || step === "processing") {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              <CardTitle>AI Quick Scan</CardTitle>
+            </div>
+            <CardDescription>
+              Describe your operation in plain language and let AI analyze your water risks instantly
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Example prompts */}
+            <div className="flex flex-wrap gap-2">
+              {examplePrompts.map((example) => (
+                <Button
+                  key={example.label}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDescription(example.text)}
+                  disabled={loading}
+                  className="text-xs"
+                >
+                  {example.label}
+                </Button>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Describe your operation</label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="E.g.: We are a semiconductor factory in Taiwan mainly using municipal water. We have had issues with water scarcity in previous years. Our facility treats water on-site before use in the manufacturing process."
+                className="min-h-[180px] resize-none"
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Include details like: industry type, location, water sources, any past water issues, and treatment practices.
+              </p>
+            </div>
+
+            {step === "processing" && (
+              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Analyzing your description...</p>
+                  <p className="text-xs text-muted-foreground">AI is extracting key risk factors and calculating scores</p>
+                </div>
+              </div>
+            )}
+
+            <Button
+              onClick={handleAnalyze}
+              disabled={loading || !description.trim()}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Analyze with AI
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Quick Scan Disclaimer</AlertTitle>
+          <AlertDescription>
+            Results are based on AI estimates from your description. For a comprehensive and precise analysis, 
+            please use the <strong>Detailed Assessment</strong> form which captures all relevant risk factors.
+          </AlertDescription>
+        </Alert>
+
+        <Card className="bg-muted/30">
+          <CardContent className="pt-6">
+            <h4 className="font-medium mb-3">What the AI will extract:</h4>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li>• <strong>Industry Sector</strong> - Semiconductors, data centers, pharmaceuticals, etc.</li>
+              <li>• <strong>Location</strong> - Country and region for regional risk assessment</li>
+              <li>• <strong>Facilities Count</strong> - Number of sites for water consumption estimates</li>
+              <li>• <strong>Water Sources</strong> - Municipal, groundwater, surface water, etc.</li>
+              <li>• <strong>Past Disruptions</strong> - Any water scarcity or supply issues mentioned</li>
+              <li>• <strong>Treatment Level</strong> - Current water treatment and recycling practices</li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Review step - show results before saving
+  if (step === "review" && parsedData && riskData) {
+    return (
+      <div className="space-y-6">
+        {/* Header with reset */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Quick Scan Results</h2>
+            <p className="text-muted-foreground">Review and correct any AI assumptions before saving</p>
+          </div>
+          <Button variant="outline" onClick={handleReset}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Start Over
+          </Button>
+        </div>
+
+        {/* Overall Risk Score Banner */}
+        <Card className="border-2">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Analyzing your description...</p>
-                <p className="text-xs text-muted-foreground">AI is extracting key risk factors and calculating scores</p>
+                <p className="text-sm text-muted-foreground mb-1">Overall Water Risk Score</p>
+                <div className={`text-5xl font-bold ${
+                  riskData.overallRisk > 60 ? 'text-red-600' : 
+                  riskData.overallRisk > 30 ? 'text-amber-600' : 'text-green-600'
+                }`}>
+                  {riskData.overallRisk}
+                </div>
+                <p className="text-sm mt-1">
+                  {riskData.overallRisk > 60 ? 'High Risk' : 
+                   riskData.overallRisk > 30 ? 'Medium Risk' : 'Low Risk'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium">{parsedData.companyName}</p>
+                <p className="text-sm text-muted-foreground">{parsedData.industrySector}</p>
+                <p className="text-sm text-muted-foreground">
+                  {parsedData.primaryLocationRegion 
+                    ? `${parsedData.primaryLocationRegion}, ${parsedData.primaryLocationCountry}`
+                    : parsedData.primaryLocationCountry}
+                </p>
               </div>
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          <Button
-            onClick={handleAnalyze}
-            disabled={loading || !description.trim()}
-            className="w-full"
+        {/* Two column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left column - Detected data */}
+          <DetectedDataSection 
+            fields={buildDetectedFields()}
+            onFieldUpdate={handleFieldUpdate}
+          />
+          
+          {/* Right column - Key risks */}
+          <KeyRisksProfile
+            industry={parsedData.industrySector}
+            location={parsedData.primaryLocationRegion || parsedData.primaryLocationCountry}
+            risks={buildRiskItems()}
+          />
+        </div>
+
+        {/* Industry Insights */}
+        <IndustryInsightsCard
+          industry={parsedData.industrySector}
+          location={parsedData.primaryLocationCountry}
+          insights={buildInsights()}
+        />
+
+        {/* Action buttons */}
+        <div className="flex gap-4">
+          <Button 
+            onClick={handleSaveAndContinue}
+            disabled={loading}
+            className="flex-1"
             size="lg"
           >
             {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
-              </>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Analyze with AI
-              </>
+              <ArrowRight className="h-4 w-4 mr-2" />
             )}
+            Save & View Full Dashboard
           </Button>
-        </CardContent>
-      </Card>
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/risk-assessment', { state: { openDetailed: true } })}
+            className="flex-1"
+            size="lg"
+          >
+            Run Detailed Assessment Instead
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-      <Alert>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Quick Scan Disclaimer</AlertTitle>
-        <AlertDescription>
-          Results are based on AI estimates from your description. For a comprehensive and precise analysis, 
-          please use the <strong>Detailed Assessment</strong> form which captures all relevant risk factors.
-        </AlertDescription>
-      </Alert>
-
-      <Card className="bg-muted/30">
-        <CardContent className="pt-6">
-          <h4 className="font-medium mb-3">What the AI will extract:</h4>
-          <ul className="text-sm text-muted-foreground space-y-2">
-            <li>• <strong>Industry Sector</strong> - Manufacturing, semiconductors, food & beverage, etc.</li>
-            <li>• <strong>Location</strong> - Country and region for physical risk assessment</li>
-            <li>• <strong>Water Sources</strong> - Municipal, groundwater, surface water, etc.</li>
-            <li>• <strong>Past Disruptions</strong> - Any water scarcity or supply issues mentioned</li>
-            <li>• <strong>Treatment Level</strong> - Current water treatment practices</li>
-            <li>• <strong>Water Quality</strong> - Estimated intake water quality</li>
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return null;
 };
 
 export default QuickScanForm;
