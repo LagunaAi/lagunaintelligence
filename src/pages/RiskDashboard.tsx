@@ -55,15 +55,40 @@ interface ComparativeIntelligence {
   }>;
 }
 
+interface ReputationalNewsItem {
+  headline: string;
+  source: string;
+  date: string;
+  summary: string;
+  tags: string[];
+  sentiment: 'negative' | 'warning';
+}
+
+const QUICK_SCAN_STORAGE_KEY = 'laguna-quick-scan-state';
+
 const RiskDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const [intelligence, setIntelligence] = useState<ComparativeIntelligence | null>(null);
   const [intelligenceLoading, setIntelligenceLoading] = useState(false);
+  const [reputationalNews, setReputationalNews] = useState<ReputationalNewsItem[]>([]);
 
   useEffect(() => {
     loadLatestAssessment();
+    
+    // Load reputational news from Quick Scan session storage
+    const savedState = sessionStorage.getItem(QUICK_SCAN_STORAGE_KEY);
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.parsedData?.reputationalNews) {
+          setReputationalNews(parsed.parsedData.reputationalNews);
+        }
+      } catch (e) {
+        console.error('Error loading reputational news from session:', e);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -292,11 +317,13 @@ const RiskDashboard = () => {
             </div>
           )}
 
-          {/* Reputational Risk Signals */}
+          {/* Reputational Risk Signals - Full mode */}
           <div className="mb-8">
             <ReputationalRiskFeed 
               industrySector={assessment.industry_sector}
               country={assessment.primary_location_country}
+              reputationalNews={reputationalNews}
+              compact={false}
             />
           </div>
 
