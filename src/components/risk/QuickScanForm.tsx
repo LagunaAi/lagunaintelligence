@@ -253,7 +253,7 @@ const QuickScanForm = () => {
       if (insertError) throw insertError;
 
       setStep("complete");
-      sessionStorage.removeItem(STORAGE_KEY); // Clear persisted state
+      // Don't clear sessionStorage here - RiskDashboard needs to read reputationalNews from it
       toast.success("Quick scan completed!");
       navigate('/risk-dashboard');
     } catch (error: any) {
