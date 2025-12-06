@@ -16,12 +16,11 @@ const RecommendationCard = ({ title, description, priority, industry }: Recommen
     return "bg-green-100 text-green-800 border-green-200";
   };
 
-  const handleLearnMore = () => {
+  const getLearnMoreUrl = () => {
     const searchQuery = industry 
       ? `${title} solutions for ${industry} industry`
       : `${title} water management solutions`;
-    const encodedQuery = encodeURIComponent(searchQuery);
-    window.open(`https://www.google.com/search?q=${encodedQuery}`, '_blank');
+    return `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
   };
 
   return (
@@ -36,12 +35,14 @@ const RecommendationCard = ({ title, description, priority, industry }: Recommen
       </CardHeader>
       <CardContent>
         <CardDescription className="text-sm mb-3">{description}</CardDescription>
-        <div 
+        <a 
+          href={getLearnMoreUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center text-sm text-primary font-medium cursor-pointer hover:underline"
-          onClick={handleLearnMore}
         >
           Learn more <ArrowRight className="ml-1 h-4 w-4" />
-        </div>
+        </a>
       </CardContent>
     </Card>
   );
