@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Newspaper, ChevronDown, ChevronUp, Info, ExternalLink } from "lucide-react";
+import { Newspaper, ChevronDown, ChevronUp, Info, ExternalLink, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NewsArticle {
   id: string;
@@ -15,69 +16,84 @@ interface NewsArticle {
   tags: string[];
   industryTag?: string;
   sentiment: "negative" | "warning";
-  url: string;
 }
 
-const sampleArticles: NewsArticle[] = [
-  {
-    id: "1",
-    headline: "UK running out of water – but data centres refuse to say how much they use",
-    source: "BBC News",
-    date: "December 2025",
-    summary: "Tech firms failing to disclose water consumption as concerns grow over UK water supply shortages.",
-    tags: ["Water Scarcity"],
-    industryTag: "Data Centers",
-    sentiment: "negative",
-    url: "https://www.bbc.com/news/articles/ckg0d0p7d8po"
-  },
-  {
-    id: "2",
-    headline: "$98 billion in data center projects blocked or delayed by community opposition",
-    source: "NBC News",
-    date: "November 2025",
-    summary: "Local resistance to data centers has become a sustained and intensifying trend across 17 US states.",
-    tags: ["Community Opposition"],
-    industryTag: "Data Centers",
-    sentiment: "negative",
-    url: "https://www.nbcnews.com/tech/tech-news/data-centers-blocked-delayed-community-resistance-rcna181444"
-  },
-  {
-    id: "3",
-    headline: "Prince George's County pauses all data center development",
-    source: "MultiState",
-    date: "October 2025",
-    summary: "Maryland county halts new projects to study community impacts after 20,000-signature petition.",
-    tags: ["Regulatory Pressure"],
-    industryTag: "Data Centers",
-    sentiment: "warning",
-    url: "https://www.multistate.us/insider/2025/10/22/prince-georges-county-pauses-all-data-center-development"
-  },
-  {
-    id: "4",
-    headline: "Taiwan pays farmers not to grow rice so chip factories can have water",
-    source: "NPR",
-    date: "April 2023",
-    summary: "For three consecutive years, 183,000 acres of farmland shut off during worst drought in 56 years.",
-    tags: ["Water Scarcity"],
-    industryTag: "Semiconductors",
-    sentiment: "negative",
-    url: "https://www.npr.org/2023/04/06/1167845487/taiwan-chips-drought-water-tsmc-semiconductors"
-  },
-  {
-    id: "5",
-    headline: "AI mega projects raise alarm in Europe's driest regions",
-    source: "CNBC",
-    date: "October 2025",
-    summary: "Data center expansion plans collide with water scarcity concerns in Spain and southern Europe.",
-    tags: ["Water Scarcity"],
-    industryTag: "Data Centers",
-    sentiment: "warning",
-    url: "https://www.cnbc.com/2024/10/28/ai-data-centers-raise-alarm-in-europes-dry-regions.html"
-  }
-];
+interface ReputationalRiskFeedProps {
+  industrySector?: string;
+  country?: string;
+}
 
-const ReputationalRiskFeed = () => {
+const ReputationalRiskFeed = ({ industrySector, country }: ReputationalRiskFeedProps) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
+
+  useEffect(() => {
+    if (industrySector && country && !hasGenerated) {
+      generateNewsHeadlines();
+    }
+  }, [industrySector, country]);
+
+  const generateNewsHeadlines = async () => {
+    if (!industrySector || !country) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-risk-news', {
+        body: { industrySector, country }
+      });
+
+      if (error) throw error;
+
+      if (data?.articles) {
+        setArticles(data.articles);
+      }
+      setHasGenerated(true);
+    } catch (error) {
+      console.error('Error generating news headlines:', error);
+      // Fallback to default articles
+      setArticles(getDefaultArticles(industrySector, country));
+      setHasGenerated(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDefaultArticles = (industry: string, location: string): NewsArticle[] => {
+    return [
+      {
+        id: "1",
+        headline: `Water scarcity concerns rise for ${industry} sector in ${location}`,
+        source: "Industry Analysis",
+        date: "Recent",
+        summary: `Growing concerns about water availability affecting ${industry.toLowerCase()} operations in the region.`,
+        tags: ["Water Scarcity"],
+        industryTag: industry,
+        sentiment: "warning"
+      },
+      {
+        id: "2",
+        headline: `New water regulations proposed for ${industry} industry`,
+        source: "Regulatory Watch",
+        date: "Recent",
+        summary: `Proposed regulations could impact water usage permits and discharge requirements for ${industry.toLowerCase()} facilities.`,
+        tags: ["Regulatory Pressure"],
+        industryTag: industry,
+        sentiment: "warning"
+      },
+      {
+        id: "3",
+        headline: `Community groups raise water usage concerns in ${location}`,
+        source: "Local News",
+        date: "Recent",
+        summary: `Local stakeholders express concerns about industrial water consumption and its impact on regional water supplies.`,
+        tags: ["Community Opposition"],
+        industryTag: industry,
+        sentiment: "negative"
+      }
+    ];
+  };
 
   const getSentimentStyles = (sentiment: "negative" | "warning") => {
     if (sentiment === "negative") {
@@ -105,6 +121,13 @@ const ReputationalRiskFeed = () => {
     }
   };
 
+  const openGoogleNews = (headline: string) => {
+    const encodedQuery = encodeURIComponent(headline);
+    window.open(`https://news.google.com/search?q=${encodedQuery}`, '_blank');
+  };
+
+  const displayArticles = articles.length > 0 ? articles : (industrySector && country ? getDefaultArticles(industrySector, country) : []);
+
   return (
     <Card className="border-2">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -128,7 +151,12 @@ const ReputationalRiskFeed = () => {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <CardDescription>Recent news that may indicate emerging water risks</CardDescription>
+                <CardDescription>
+                  {industrySector && country 
+                    ? `Risk signals for ${industrySector} in ${country}`
+                    : "Recent news that may indicate emerging water risks"
+                  }
+                </CardDescription>
               </div>
             </div>
             <CollapsibleTrigger asChild>
@@ -141,63 +169,77 @@ const ReputationalRiskFeed = () => {
         
         <CollapsibleContent>
           <CardContent className="pt-0">
-            <div className="space-y-3">
-              {sampleArticles.map((article) => {
-                const sentimentStyles = getSentimentStyles(article.sentiment);
-                return (
-                  <a
-                    key={article.id}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`block p-4 rounded-lg border transition-all hover:shadow-md hover:border-primary/30 ${sentimentStyles.bgClass}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Sentiment Indicator */}
-                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${sentimentStyles.dotClass}`} />
-                      
-                      <div className="flex-1 min-w-0">
-                        {/* Headline */}
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-semibold text-foreground leading-tight line-clamp-2 group-hover:text-primary">
-                            {article.headline}
-                          </h4>
-                          <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                        </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                <span className="text-muted-foreground">Generating personalized risk signals...</span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayArticles.map((article) => {
+                  const sentimentStyles = getSentimentStyles(article.sentiment);
+                  return (
+                    <div
+                      key={article.id}
+                      onClick={() => openGoogleNews(article.headline)}
+                      className={`block p-4 rounded-lg border transition-all hover:shadow-md hover:border-primary/30 cursor-pointer ${sentimentStyles.bgClass}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Sentiment Indicator */}
+                        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${sentimentStyles.dotClass}`} />
                         
-                        {/* Source and Date */}
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {article.source} • {article.date}
-                        </p>
-                        
-                        {/* Summary */}
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {article.summary}
-                        </p>
-                        
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          {article.industryTag && (
-                            <Badge variant="default" className="text-xs">
-                              {article.industryTag}
-                            </Badge>
-                          )}
-                          {article.tags.map((tag) => (
-                            <Badge key={tag} variant={getTagVariant(tag)} className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
+                        <div className="flex-1 min-w-0">
+                          {/* Headline */}
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h4 className="font-semibold text-foreground leading-tight line-clamp-2 group-hover:text-primary">
+                              {article.headline}
+                            </h4>
+                            <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                          </div>
+                          
+                          {/* Source and Date */}
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {article.source} • {article.date}
+                          </p>
+                          
+                          {/* Summary */}
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                            {article.summary}
+                          </p>
+                          
+                          {/* Tags */}
+                          <div className="flex flex-wrap gap-2">
+                            {article.industryTag && (
+                              <Badge variant="default" className="text-xs">
+                                {article.industryTag}
+                              </Badge>
+                            )}
+                            {article.tags.map((tag) => (
+                              <Badge key={tag} variant={getTagVariant(tag)} className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </a>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
             
             {/* View All Link */}
             <div className="mt-4 pt-4 border-t">
-              <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground">
+              <Button 
+                variant="ghost" 
+                className="w-full text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  const query = industrySector && country 
+                    ? `${industrySector} water risk ${country}`
+                    : "industrial water risk news";
+                  window.open(`https://news.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                }}
+              >
                 View All Risk Signals
                 <ExternalLink className="h-4 w-4 ml-2" />
               </Button>

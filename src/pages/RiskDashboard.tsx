@@ -15,6 +15,8 @@ interface RiskAssessment {
   id: string;
   company_name: string;
   industry_sector: string;
+  primary_location_country: string;
+  primary_location_region: string | null;
   overall_risk_score: number;
   physical_risk_score: number;
   regulatory_risk_score: number;
@@ -181,6 +183,7 @@ const RiskDashboard = () => {
                     title={action.title}
                     description={action.description}
                     priority={action.priority}
+                    industry={assessment.industry_sector}
                   />
                 ))}
               </div>
@@ -189,7 +192,10 @@ const RiskDashboard = () => {
 
           {/* Reputational Risk Signals */}
           <div className="mb-8">
-            <ReputationalRiskFeed />
+            <ReputationalRiskFeed 
+              industrySector={assessment.industry_sector}
+              country={assessment.primary_location_country}
+            />
           </div>
 
           {/* Action Buttons */}
