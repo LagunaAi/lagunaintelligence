@@ -10,9 +10,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ClipboardList, Zap } from "lucide-react";
+import QuickScanForm from "@/components/risk/QuickScanForm";
 
 const INDUSTRY_SECTORS = [
   "Manufacturing",
@@ -291,17 +293,34 @@ const RiskAssessment = () => {
             <p className="text-muted-foreground">Complete this assessment to understand your water-related risks and receive personalized recommendations</p>
           </div>
 
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Progress</span>
-                <span className="text-sm text-muted-foreground">Step {step} of 4</span>
-              </div>
-              <Progress value={progressValue} className="h-2" />
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="quick-scan" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="quick-scan" className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                AI Quick Scan
+              </TabsTrigger>
+              <TabsTrigger value="detailed" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Detailed Assessment
+              </TabsTrigger>
+            </TabsList>
 
-          {step === 1 && (
+            <TabsContent value="quick-scan">
+              <QuickScanForm />
+            </TabsContent>
+
+            <TabsContent value="detailed">
+              <Card className="mb-8">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Progress</span>
+                    <span className="text-sm text-muted-foreground">Step {step} of 4</span>
+                  </div>
+                  <Progress value={progressValue} className="h-2" />
+                </CardContent>
+              </Card>
+
+              {step === 1 && (
             <Card>
               <CardHeader>
                 <CardTitle>Company Profile</CardTitle>
@@ -670,6 +689,8 @@ const RiskAssessment = () => {
               </CardContent>
             </Card>
           )}
+            </TabsContent>
+          </Tabs>
         </div>
       </Layout>
     </ProtectedRoute>
