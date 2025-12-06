@@ -10,6 +10,13 @@ import { Loader2, Sparkles, AlertTriangle, Zap, ArrowRight, RotateCcw } from "lu
 import DetectedDataSection from "./DetectedDataSection";
 import KeyRisksProfile from "./KeyRisksProfile";
 import IndustryInsightsCard from "./IndustryInsightsCard";
+import ReputationalRiskFeed from "./ReputationalRiskFeed";
+
+interface RiskScoreDetail {
+  score: number;
+  level: string;
+  factors: string[];
+}
 
 interface ParsedData {
   industrySector: string;
@@ -33,6 +40,29 @@ interface ParsedData {
   };
   regionalRiskFactors: Record<string, string> | null;
   industryInsights: string[];
+  // New fields from enhanced prompt
+  riskScores?: {
+    overall: number;
+    physical: RiskScoreDetail;
+    regulatory: RiskScoreDetail;
+    reputational: RiskScoreDetail;
+    governance: RiskScoreDetail;
+    financial: RiskScoreDetail;
+  };
+  topRisks?: Array<{
+    category: string;
+    score: number;
+    headline: string;
+    detail: string;
+  }>;
+  recommendations?: Array<{
+    title: string;
+    priority: string;
+    description: string;
+    expected_impact: string;
+    example_project?: string | null;
+  }>;
+  newsKeywords?: string[];
 }
 
 interface RiskData {
@@ -78,8 +108,8 @@ const QuickScanForm = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Step 1: Parse description with enhanced AI
-      toast.info("Analyzing your description...");
+      // Parse description with enhanced AI that includes risk scores
+      toast.info("Analyzing your description with AI...");
       const { data: parsed, error: parseError } = await supabase.functions.invoke('parse-risk-description', {
         body: { description }
       });
@@ -90,31 +120,47 @@ const QuickScanForm = () => {
       console.log('Parsed data:', parsed);
       setParsedData(parsed);
 
-      // Step 2: Calculate risk using existing function
-      toast.info("Calculating risk scores...");
-      const { data: risks, error: riskError } = await supabase.functions.invoke('calculate-risk', {
-        body: {
-          industrySector: parsed.industrySector,
-          waterSources: parsed.waterSources,
-          waterDisruptions: parsed.waterDisruptions,
-          currentTreatment: parsed.currentTreatment,
-          primaryLocationCountry: parsed.primaryLocationCountry,
-          primaryLocationRegion: parsed.primaryLocationRegion,
-          intakeWaterQuality: parsed.intakeWaterQuality,
-          primaryContaminants: [],
-          treatmentBeforeUse: "Don't know",
-          dischargePermitType: "Municipal sewer system",
-          dischargeQualityConcerns: false,
-          upstreamPollutionSources: [],
-          waterQualityTestingFrequency: "Never / Don't know"
-        }
-      });
+      // Use AI-generated risk scores if available, otherwise use calculate-risk
+      if (parsed.riskScores) {
+        console.log('Using AI-generated risk scores');
+        const aiRisks: RiskData = {
+          overallRisk: parsed.riskScores.overall || 50,
+          physicalRisk: parsed.riskScores.physical?.score || 50,
+          regulatoryRisk: parsed.riskScores.regulatory?.score || 50,
+          reputationalRisk: parsed.riskScores.reputational?.score || 50,
+          financialRisk: parsed.riskScores.financial?.score || 50,
+          waterQualityRisk: 50, // AI doesn't provide this separately, use governance as proxy
+          recommendations: parsed.recommendations || []
+        };
+        setRiskData(aiRisks);
+        setStep("review");
+      } else {
+        // Fallback to calculate-risk function
+        toast.info("Calculating risk scores...");
+        const { data: risks, error: riskError } = await supabase.functions.invoke('calculate-risk', {
+          body: {
+            industrySector: parsed.industrySector,
+            waterSources: parsed.waterSources,
+            waterDisruptions: parsed.waterDisruptions,
+            currentTreatment: parsed.currentTreatment,
+            primaryLocationCountry: parsed.primaryLocationCountry,
+            primaryLocationRegion: parsed.primaryLocationRegion,
+            intakeWaterQuality: parsed.intakeWaterQuality,
+            primaryContaminants: [],
+            treatmentBeforeUse: "Don't know",
+            dischargePermitType: "Municipal sewer system",
+            dischargeQualityConcerns: false,
+            upstreamPollutionSources: [],
+            waterQualityTestingFrequency: "Never / Don't know"
+          }
+        });
 
-      if (riskError) throw riskError;
+        if (riskError) throw riskError;
 
-      console.log('Risk data:', risks);
-      setRiskData(risks);
-      setStep("review");
+        console.log('Risk data:', risks);
+        setRiskData(risks);
+        setStep("review");
+      }
 
     } catch (error: any) {
       console.error('Error in quick scan:', error);
@@ -192,7 +238,7 @@ const QuickScanForm = () => {
     });
   };
 
-  // Build risk items for KeyRisksProfile
+  // Build risk items for KeyRisksProfile using AI-generated factors when available
   const buildRiskItems = (): Array<{
     name: string;
     score: number;
@@ -203,7 +249,7 @@ const QuickScanForm = () => {
     if (!riskData || !parsedData) return [];
 
     const location = parsedData.primaryLocationRegion || parsedData.primaryLocationCountry;
-    const regional = parsedData.regionalRiskFactors;
+    const aiScores = parsedData.riskScores;
 
     const getLevel = (score: number): 'low' | 'medium' | 'high' => {
       if (score > 60) return 'high';
@@ -211,48 +257,54 @@ const QuickScanForm = () => {
       return 'low';
     };
 
+    // Use AI-generated factors if available
+    const getFactorReason = (category: string, fallback: string): string => {
+      if (aiScores) {
+        const scoreData = aiScores[category.toLowerCase() as keyof typeof aiScores];
+        if (scoreData && typeof scoreData === 'object' && 'factors' in scoreData) {
+          const factors = (scoreData as RiskScoreDetail).factors;
+          if (factors && factors.length > 0) {
+            return factors[0];
+          }
+        }
+      }
+      return fallback;
+    };
+
     return [
       {
         name: "Physical Risk",
         score: riskData.physicalRisk,
         level: getLevel(riskData.physicalRisk),
-        reason: regional?.physicalRisk === "HIGH" 
-          ? `${location} faces significant water scarcity and drought conditions`
-          : `Water availability assessment for ${location}`,
+        reason: getFactorReason('physical', `Water availability assessment for ${location}`),
         icon: 'physical' as const
       },
       {
         name: "Financial Risk",
         score: riskData.financialRisk,
         level: getLevel(riskData.financialRisk),
-        reason: regional?.financialRisk === "HIGH"
-          ? `Rising water costs and supply constraints in ${location}`
-          : `Cost volatility assessment based on regional factors`,
+        reason: getFactorReason('financial', `Cost volatility assessment based on regional factors`),
         icon: 'financial' as const
       },
       {
         name: "Regulatory Risk",
         score: riskData.regulatoryRisk,
         level: getLevel(riskData.regulatoryRisk),
-        reason: regional?.regulatoryRisk === "HIGH"
-          ? `Strict environmental regulations in ${location}`
-          : `Standard compliance requirements for ${parsedData.industrySector}`,
+        reason: getFactorReason('regulatory', `Compliance requirements for ${parsedData.industrySector}`),
         icon: 'regulatory' as const
       },
       {
         name: "Reputational Risk",
         score: riskData.reputationalRisk,
         level: getLevel(riskData.reputationalRisk),
-        reason: parsedData.mentionedConcerns.includes("community opposition")
-          ? "Community concerns mentioned - elevated reputational exposure"
-          : `ESG and stakeholder perception for ${parsedData.industrySector}`,
+        reason: getFactorReason('reputational', `ESG and stakeholder perception for ${parsedData.industrySector}`),
         icon: 'reputational' as const
       },
       {
-        name: "Water Quality Risk",
+        name: "Governance Risk",
         score: riskData.waterQualityRisk,
         level: getLevel(riskData.waterQualityRisk),
-        reason: `Based on ${parsedData.intakeWaterQuality.toLowerCase()} intake quality and ${parsedData.currentTreatment.toLowerCase()} treatment`,
+        reason: getFactorReason('governance', `Water rights and jurisdiction complexity for ${location}`),
         icon: 'quality' as const
       }
     ];
@@ -487,6 +539,13 @@ const QuickScanForm = () => {
           industry={parsedData.industrySector}
           location={parsedData.primaryLocationCountry}
           insights={buildInsights()}
+        />
+
+        {/* Reputational Risk Signals */}
+        <ReputationalRiskFeed
+          industrySector={parsedData.industrySector}
+          country={parsedData.primaryLocationCountry}
+          newsKeywords={parsedData.newsKeywords}
         />
 
         {/* Action buttons */}
