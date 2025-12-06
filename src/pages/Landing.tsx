@@ -19,10 +19,16 @@ export default function Landing() {
           *,
           financials(roi_percent, total_investment_usd, payback_years),
           outcomes(water_saved_m3_year, water_produced_m3_day)
-        `)
-        .limit(5);
+        `);
       
-      if (data) setFeaturedProjects(data);
+      if (data) {
+        // Filter to only projects with relevant financial data
+        const projectsWithFinancials = data.filter(project => 
+          project.financials?.total_investment_usd > 0 || 
+          project.financials?.roi_percent > 0
+        );
+        setFeaturedProjects(projectsWithFinancials.slice(0, 4));
+      }
     };
     fetchFeaturedProjects();
   }, []);
@@ -433,7 +439,9 @@ export default function Landing() {
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Investment</p>
                         <p className="text-2xl font-bold data-value">
-                          ${(featuredProjects[currentProjectIndex]?.financials?.total_investment_usd / 1000000).toFixed(1)}M
+                          {featuredProjects[currentProjectIndex]?.financials?.total_investment_usd > 0
+                            ? `$${(featuredProjects[currentProjectIndex]?.financials?.total_investment_usd / 1000000).toFixed(1)}M`
+                            : 'N/A'}
                         </p>
                       </div>
                       {featuredProjects[currentProjectIndex]?.financials?.roi_percent && (
