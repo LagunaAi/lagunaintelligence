@@ -59,12 +59,6 @@ export default function QRCodePage() {
               size={256}
               level="H"
               marginSize={2}
-              imageSettings={{
-                src: lagunaLogo,
-                height: 40,
-                width: 40,
-                excavate: true,
-              }}
             />
           </div>
           
