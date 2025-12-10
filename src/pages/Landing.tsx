@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
-import { Database, TrendingUp, MessageSquare, ArrowRight, AlertTriangle, Target, BarChart3, CheckCircle2, ChevronLeft, ChevronRight, Newspaper, Check } from "lucide-react";
+import { Database, TrendingUp, MessageSquare, ArrowRight, AlertTriangle, Target, BarChart3, CheckCircle2, ChevronLeft, ChevronRight, Newspaper, Check, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -545,16 +545,22 @@ export default function Landing() {
         {/* Footer */}
         <footer className="border-t py-12 bg-muted/20">
           <div className="container px-4 md:px-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-sm text-muted-foreground">
                 © 2024 Laguna. All rights reserved.
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <a 
+                  href="mailto:laguna.water.platform@gmail.com" 
+                  className="hover:text-primary transition-colors"
+                >
+                  laguna.water.platform@gmail.com
+                </a>
               </div>
               <div className="flex gap-6">
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   About
-                </a>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Contact
                 </a>
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Privacy
