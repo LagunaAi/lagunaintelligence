@@ -16,6 +16,7 @@ import RiskDashboard from "./pages/RiskDashboard";
 import Admin from "./pages/Admin";
 import Demo from "./pages/Demo";
 import QRCode from "./pages/QRCode";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { DemoProvider } from "./contexts/DemoContext";
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/demo" element={<Demo />} />
             <Route path="/qr" element={<QRCode />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </DemoProvider>
