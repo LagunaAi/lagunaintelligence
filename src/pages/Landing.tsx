@@ -562,6 +562,9 @@ export default function Landing() {
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   About
                 </a>
+                <a href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Contact
+                </a>
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Privacy
                 </a>
