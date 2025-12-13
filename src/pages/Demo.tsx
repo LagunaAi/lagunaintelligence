@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Download, MessageSquare, Search, Calendar, ExternalLink, Lightbulb } from "lucide-react";
+import { Loader2, Download, MessageSquare, Search, Calendar, ExternalLink, Lightbulb, Mail } from "lucide-react";
 import RiskScoreCard from "@/components/risk/RiskScoreCard";
 import ReputationalRiskFeed from "@/components/risk/ReputationalRiskFeed";
 import IndustryBenchmark from "@/components/risk/IndustryBenchmark";
@@ -275,11 +275,11 @@ const Demo = () => {
             <Button
               variant="outline"
               className="w-full h-auto py-6 flex flex-col items-center gap-2"
-              onClick={() => toast.info("Consultation scheduling coming soon")}
+              onClick={() => navigate('/contact')}
             >
-              <Calendar className="h-6 w-6" />
-              <span className="font-semibold">Schedule Call</span>
-              <span className="text-xs opacity-90">Talk to an expert</span>
+              <Mail className="h-6 w-6" />
+              <span className="font-semibold">Contact Us</span>
+              <span className="text-xs opacity-90">Get in touch</span>
             </Button>
           </div>
         </div>
