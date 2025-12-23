@@ -13,6 +13,7 @@ import ReputationalRiskFeed from "@/components/risk/ReputationalRiskFeed";
 import IndustryBenchmark from "@/components/risk/IndustryBenchmark";
 import FloodRiskSpotlight from "@/components/risk/FloodRiskSpotlight";
 import PeerInsights from "@/components/risk/PeerInsights";
+import CapexWaasRecommendation from "@/components/risk/CapexWaasRecommendation";
 
 interface RiskAssessment {
   id: string;
@@ -316,6 +317,21 @@ const RiskDashboard = () => {
               </div>
             </div>
           )}
+
+          {/* CAPEX vs WaaS Recommendation */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Investment Model Analysis</h2>
+            <CapexWaasRecommendation
+              companySize={
+                assessment.annual_water_consumption > 1000000 ? 'large' :
+                assessment.annual_water_consumption > 100000 ? 'mid' : 'small'
+              }
+              physicalRiskScore={assessment.physical_risk_score}
+              regulatoryRiskScore={assessment.regulatory_risk_score}
+              overallRiskScore={assessment.overall_risk_score}
+              industrySector={assessment.industry_sector}
+            />
+          </div>
 
           {/* Reputational Risk Signals - Full mode */}
           <div className="mb-8">
